@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Productive Pomodoro</title>
+    <style>
+      :root {
+        --primary-blue: #4a90e2;
+        --secondary-green: #7ed321;
+        --accent-orange: #f5a623;
+        --deep-maroon: #8b1538;
+        --white: #ffffff;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+          "Oxygen", sans-serif;
+        background: linear-gradient(
+          135deg,
+          var(--primary-blue) 0%,
+          var(--deep-maroon) 100%
+        );
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: var(--white);
+        padding: 20px;
+      }
+
+      .landing-content {
+        max-width: 600px;
+      }
+
+      .landing-title {
+        font-size: 48px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        line-height: 1.2;
+      }
+
+      .landing-subtitle {
+        font-size: 20px;
+        margin-bottom: 40px;
+        opacity: 0.9;
+        line-height: 1.4;
+      }
+
+      .landing-buttons {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        min-width: 140px;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .btn-primary {
+        background-color: var(--primary-blue);
+        color: var(--white);
+      }
+
+      .btn-outline {
+        background-color: transparent;
+        color: var(--white);
+        border: 2px solid var(--white);
+      }
+
+      .btn-outline:hover {
+        background-color: var(--white);
+        color: var(--primary-blue);
+      }
+
+      @media (max-width: 768px) {
+        .landing-title {
+          font-size: 36px;
+        }
+
+        .landing-subtitle {
+          font-size: 18px;
+        }
+
+        .landing-buttons {
+          flex-direction: column;
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="landing-content">
+      <h1 class="landing-title">Productive Pomodoro</h1>
+      <p class="landing-subtitle">
+        Boost your focus with a smart timer and purposeful break activities.
+        Combine the power of the Pomodoro technique with mindful breaks to
+        maximize your productivity and well-being.
+      </p>
+      <div class="landing-buttons">
+        <a href="login.html" class="btn btn-primary"> Sign In </a>
+        <a href="register.html" class="btn btn-outline"> Get Started </a>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,292 @@
+.dashboard {
+  min-height: 100vh;
+  background: var(--light-gray);
+  color: var(--dark-gray);
+}
+
+.dashboard-header {
+  background: var(--white);
+  padding: 20px;
+  box-shadow: 0 2px 8px var(--shadow);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.dashboard-header h1 {
+  color: var(--primary-blue);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.session-counter {
+  color: var(--medium-gray);
+  font-weight: 500;
+}
+
+.dashboard-content {
+  padding: 40px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Timer Section */
+.timer-section {
+  margin-bottom: 40px;
+  display: flex;
+  justify-content: center;
+}
+
+.timer-card {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 8px 24px var(--shadow);
+  min-width: 350px;
+  transition: all 0.3s ease;
+}
+
+.timer-card.work-mode {
+  border: 4px solid var(--primary-blue);
+}
+
+.timer-card.break-mode {
+  border: 4px solid var(--secondary-green);
+}
+
+.timer-card h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.timer-display {
+  font-size: 72px;
+  font-weight: 700;
+  margin: 30px 0;
+  font-family: "Courier New", monospace;
+  color: var(--dark-gray);
+}
+
+.work-mode .timer-display {
+  color: var(--primary-blue);
+}
+
+.break-mode .timer-display {
+  color: var(--secondary-green);
+}
+
+.timer-controls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Todo Section */
+.todo-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-top: 40px;
+}
+
+.todo-column {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 16px var(--shadow);
+  height: fit-content;
+}
+
+.todo-header {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.todo-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.todo-header small {
+  color: var(--medium-gray);
+  font-size: 14px;
+}
+
+.add-task-form {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.add-task-form .form-input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.task-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  margin-bottom: 8px;
+  background: var(--light-gray);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.task-item:hover {
+  background: #e9ecef;
+  transform: translateY(-1px);
+}
+
+.task-item.completed {
+  opacity: 0.6;
+}
+
+.task-item.completed .task-text {
+  text-decoration: line-through;
+  color: var(--medium-gray);
+}
+
+.task-item input[type="checkbox"] {
+  margin-right: 12px;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary-blue);
+  cursor: pointer;
+}
+
+.task-text {
+  flex: 1;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.delete-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: var(--medium-gray);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+/* Button variations */
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .dashboard-header {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .dashboard-header h1 {
+    font-size: 20px;
+  }
+
+  .timer-card {
+    min-width: unset;
+    width: 100%;
+    padding: 30px 20px;
+  }
+
+  .timer-display {
+    font-size: 48px;
+  }
+
+  .timer-controls {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .timer-controls .btn {
+    width: 120px;
+  }
+
+  .todo-section {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .add-task-form {
+    flex-direction: column;
+  }
+
+  .add-task-form .btn {
+    align-self: flex-start;
+    width: 80px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-content {
+    padding: 20px 10px;
+  }
+
+  .timer-card {
+    padding: 20px;
+  }
+
+  .timer-display {
+    font-size: 36px;
+    margin: 20px 0;
+  }
+
+  .todo-column {
+    padding: 16px;
+  }
+}
+
+/* Keyboard shortcut hints */
+.shortcuts-hint {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--dark-gray);
+  color: var(--white);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  opacity: 0.8;
+  z-index: 1000;
+}
+
+/* Animation for timer completion */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.timer-card.pulse {
+  animation: pulse 0.5s ease-in-out;
+}

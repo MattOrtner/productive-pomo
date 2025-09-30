@@ -1,0 +1,131 @@
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    var(--primary-blue) 0%,
+    var(--secondary-green) 100%
+  );
+  padding: 20px;
+}
+
+.auth-card {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.auth-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--dark-gray);
+  margin-bottom: 8px;
+}
+
+.auth-subtitle {
+  color: var(--medium-gray);
+  margin-bottom: 32px;
+  font-size: 16px;
+}
+
+.auth-form {
+  text-align: left;
+}
+
+.divider {
+  margin: 24px 0;
+  position: relative;
+  text-align: center;
+}
+
+.divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e9ecef;
+}
+
+.divider span {
+  background: var(--white);
+  padding: 0 16px;
+  color: var(--medium-gray);
+  font-size: 14px;
+}
+
+.landing-container {
+  min-height: 100vh;
+  background: linear-gradient(
+    135deg,
+    var(--primary-blue) 0%,
+    var(--deep-maroon) 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--white);
+  padding: 20px;
+}
+
+.landing-content {
+  max-width: 600px;
+}
+
+.landing-title {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  line-height: 1.2;
+}
+
+.landing-subtitle {
+  font-size: 20px;
+  margin-bottom: 40px;
+  opacity: 0.9;
+  line-height: 1.4;
+}
+
+.landing-buttons {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+  .auth-card {
+    padding: 32px 24px;
+  }
+
+  .landing-title {
+    font-size: 36px;
+  }
+
+  .landing-subtitle {
+    font-size: 18px;
+  }
+
+  .landing-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .landing-buttons .btn {
+    width: 200px;
+  }
+}
