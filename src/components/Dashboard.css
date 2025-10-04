@@ -11,9 +11,94 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  position: sticky;
-  top: 0;
-  z-index: 100;
+}
+/* Animation for timer completion */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.timer-card.pulse {
+  animation: pulse 0.5s ease-in-out;
+}
+
+/* @dnd-kit Drag and Drop Styles */
+.task-item.dragging {
+  opacity: 0.4;
+  transform: rotate(1deg);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
+  background: rgba(74, 144, 226, 0.08);
+  border: 2px solid var(--primary-blue);
+}
+
+.drag-handle {
+  color: var(--medium-gray);
+  font-size: 12px;
+  margin-right: 8px;
+  cursor: grab;
+  user-select: none;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
+  padding: 4px;
+  border-radius: 4px;
+  flex-shrink: 0; /* Prevent shrinking */
+  align-self: flex-start; /* Align to top for multi-line text */
+}
+
+.task-item:hover .drag-handle {
+  opacity: 1;
+  background: rgba(108, 117, 125, 0.1);
+}
+
+.task-item.completed .drag-handle {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.task-list {
+  border-radius: 8px;
+  padding: 4px 2px;
+  min-height: 80px;
+  position: relative;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.task-list.drag-over {
+  background-color: rgba(74, 144, 226, 0.08);
+  border: 2px dashed var(--primary-blue);
+}
+
+/* Empty list message */
+.empty-list-message {
+  text-align: center;
+  padding: 20px 15px;
+  color: var(--medium-gray);
+  font-style: italic;
+  border: 2px dashed #e9ecef;
+  border-radius: 8px;
+  margin: 4px 0;
+  transition: all 0.2s ease;
+}
+
+/* Simplified hover feedback */
+.task-item[draggable="true"]:hover {
+  background: #f8f9fa;
+}
+
+.task-item.completed[draggable="false"]:hover {
+  background: inherit;
 }
 
 .dashboard-header h1 {
@@ -35,7 +120,6 @@
 
 /* Timer Section */
 .timer-section {
-  margin-bottom: 40px;
   display: flex;
   justify-content: center;
 }
@@ -43,11 +127,15 @@
 .timer-card {
   background: var(--white);
   border-radius: 20px;
-  padding: 40px;
+  padding: 30px;
   text-align: center;
   box-shadow: 0 8px 24px var(--shadow);
-  min-width: 350px;
+  width: 100%;
+  max-width: 320px;
   transition: all 0.3s ease;
+  height: fit-content;
+  overflow: hidden; /* Ensure clean borders and prevent content overflow */
+  box-sizing: border-box; /* Include padding and border in width calculation */
 }
 
 .timer-card.work-mode {
@@ -70,6 +158,8 @@
   margin: 30px 0;
   font-family: "Courier New", monospace;
   color: var(--dark-gray);
+  word-break: keep-all; /* Prevent text breaking */
+  white-space: nowrap; /* Keep timer on single line */
 }
 
 .work-mode .timer-display {
@@ -87,12 +177,62 @@
   flex-wrap: wrap;
 }
 
+/* Main Content Layout */
+.main-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 320px) 1fr 1fr;
+  gap: 30px;
+  align-items: start;
+  width: 100%;
+  min-width: 0; /* Allows grid to shrink */
+  transition: grid-template-columns 0.3s ease;
+}
+
+/* Focus Mode Layout - Split screen between timer and current tasks */
+.main-layout.focus-mode {
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+
+.main-layout.focus-mode .timer-section {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.main-layout.focus-mode .timer-card {
+  width: 100%;
+  max-width: 400px;
+  box-sizing: border-box;
+}
+
+/* Break Mode Enhancement - Add subtle background change */
+.main-layout.focus-mode .timer-card.break-mode {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 4px solid var(--secondary-green);
+  border-radius: 20px; /* Ensure border-radius is maintained */
+}
+
+.main-layout.focus-mode .timer-card.work-mode {
+  background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+  border: 4px solid var(--primary-blue);
+  border-radius: 20px; /* Ensure border-radius is maintained */
+}
+
 /* Todo Section */
 .todo-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-  margin-top: 40px;
+  display: contents;
+}
+
+.drag-instructions {
+  text-align: center;
+  margin-bottom: 30px;
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: rgba(74, 144, 226, 0.1);
+  border-radius: 8px;
+  color: var(--medium-gray);
 }
 
 .todo-column {
@@ -101,6 +241,8 @@
   padding: 24px;
   box-shadow: 0 4px 16px var(--shadow);
   height: fit-content;
+  min-width: 0; /* Allows grid item to shrink */
+  overflow: hidden; /* Prevents any overflow */
 }
 
 .todo-header {
@@ -130,19 +272,16 @@
   margin-bottom: 0;
 }
 
-.task-list {
-  max-height: 400px;
-  overflow-y: auto;
-}
-
 .task-item {
   display: flex;
-  align-items: center;
-  padding: 12px;
-  margin-bottom: 8px;
+  align-items: flex-start;
+  padding: 10px;
+  margin-bottom: 4px;
   background: var(--light-gray);
   border-radius: 8px;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease, transform 0.2s ease;
+  min-width: 0; /* Allows flex container to shrink */
+  width: 100%; /* Ensures full width usage */
 }
 
 .task-item:hover {
@@ -151,7 +290,15 @@
 }
 
 .task-item.completed {
-  opacity: 0.6;
+  opacity: 0.5;
+  background: rgba(var(--light-gray-rgb, 248, 249, 250), 0.7);
+  transition: all 0.3s ease;
+}
+
+.task-item.completed:hover {
+  opacity: 0.7;
+  background: rgba(233, 236, 239, 0.8);
+  transform: none; /* Reduce hover effect for completed items */
 }
 
 .task-item.completed .task-text {
@@ -165,28 +312,126 @@
   height: 18px;
   accent-color: var(--primary-blue);
   cursor: pointer;
+  flex-shrink: 0; /* Prevent shrinking */
+  margin-top: 2px; /* Small offset to align with first line of text */
 }
 
 .task-text {
   flex: 1;
   font-size: 15px;
   line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  min-width: 0; /* Allows flex item to shrink below content size */
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.task-item:not(.completed) .task-text:hover {
+  background: rgba(74, 144, 226, 0.05);
+}
+
+.task-item.completed .task-text {
+  cursor: default;
 }
 
 .delete-btn {
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: 18px;
   color: var(--medium-gray);
   cursor: pointer;
-  padding: 4px 8px;
+  padding: 4px 6px;
   border-radius: 4px;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
 }
 
 .delete-btn:hover {
   background: #fee2e2;
   color: #b91c1c;
+}
+
+.task-item.completed .delete-btn {
+  opacity: 0.5;
+}
+
+.task-item.completed .delete-btn:hover {
+  opacity: 0.8;
+  background: rgba(254, 226, 226, 0.6);
+}
+
+/* Task editing styles */
+.task-edit-input {
+  flex: 1;
+  border: 2px solid var(--primary-blue);
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 14px;
+  background: var(--white);
+  outline: none;
+  margin-right: 8px;
+}
+
+.task-edit-input:focus {
+  border-color: var(--secondary-blue);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
+}
+
+.task-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin-left: auto;
+}
+
+.edit-btn,
+.save-btn,
+.cancel-btn {
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: var(--medium-gray);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+}
+
+.edit-btn:hover {
+  background: rgba(74, 144, 226, 0.1);
+  color: var(--primary-blue);
+}
+
+.save-btn:hover {
+  background: rgba(126, 211, 33, 0.1);
+  color: var(--secondary-green);
+}
+
+.cancel-btn:hover {
+  background: rgba(220, 38, 127, 0.1);
+  color: var(--accent-pink);
+}
+
+.task-item.editing {
+  background: rgba(74, 144, 226, 0.05);
+  border: 2px solid rgba(74, 144, 226, 0.2);
+}
+
+.task-item.editing .task-text {
+  cursor: default;
 }
 
 /* Button variations */
@@ -196,6 +441,37 @@
 }
 
 /* Responsive Design */
+@media (max-width: 1024px) {
+  /* Tablet layout - stack timer above todo lists */
+  .main-layout {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 20px;
+  }
+
+  /* Focus mode on tablet - keep side by side */
+  .main-layout.focus-mode {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: none;
+    gap: 30px;
+  }
+
+  .timer-section {
+    grid-column: 1 / -1;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .main-layout.focus-mode .timer-section {
+    grid-column: 1;
+    margin-bottom: 0;
+  }
+
+  .timer-card {
+    max-width: 400px;
+  }
+}
+
 @media (max-width: 768px) {
   .dashboard-header {
     flex-direction: column;
@@ -207,10 +483,22 @@
     font-size: 20px;
   }
 
+  /* Mobile layout - full stack */
+  .main-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  /* Focus mode on mobile - still stack vertically */
+  .main-layout.focus-mode {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+
   .timer-card {
-    min-width: unset;
+    max-width: unset;
     width: 100%;
-    padding: 30px 20px;
+    padding: 25px 20px;
   }
 
   .timer-display {
@@ -224,11 +512,6 @@
 
   .timer-controls .btn {
     width: 120px;
-  }
-
-  .todo-section {
-    grid-template-columns: 1fr;
-    gap: 20px;
   }
 
   .add-task-form {
