@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   DndContext,
   KeyboardSensor,
@@ -18,6 +17,8 @@ import {
 } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import DashboardHeader from "./DashboardHeader";
+import SettingsPanel from "./SettingsPanel";
 import "./Dashboard.css";
 
 // SortableItem component for individual tasks
@@ -184,10 +185,34 @@ const DroppableContainer = ({ id, children, className }) => {
 
 const Dashboard = () => {
   // Timer state
+  const [workDuration, setWorkDuration] = useState(25); // Work duration in minutes
+  const [breakDuration, setBreakDuration] = useState(5); // Break duration in minutes
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
   const [isActive, setIsActive] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
   const [sessions, setSessions] = useState(0);
+  const [showSettings, setShowSettings] = useState(false); // Settings menu visibility
+
+  // Sound settings state
+  const [workSoundType, setWorkSoundType] = useState("bell");
+  const [breakSoundType, setBreakSoundType] = useState("alert");
+
+  const soundOptions = {
+    work: {
+      bell: "Calming Bell",
+      chime: "Gentle Chime",
+      ding: "Soft Ding",
+      tone: "Meditation Tone",
+      gong: "Tibetan Gong",
+    },
+    break: {
+      alert: "Alert Bell",
+      chirp: "Bird Chirp",
+      beep: "Digital Beep",
+      ring: "Phone Ring",
+      whistle: "Soft Whistle",
+    },
+  };
 
   // Todo lists state
   const [workTasks, setWorkTasks] = useState([
@@ -213,6 +238,363 @@ const Dashboard = () => {
     })
   );
 
+  // Sound functions with multiple options
+  const playWorkSound = useCallback(
+    (soundType = workSoundType) => {
+      try {
+        const audioContext = new (window.AudioContext ||
+          window.webkitAudioContext)();
+        const gainNode = audioContext.createGain();
+        gainNode.connect(audioContext.destination);
+
+        switch (soundType) {
+          case "bell":
+            // Calming dual-tone bell (C5 and E5)
+            const osc1 = audioContext.createOscillator();
+            const osc2 = audioContext.createOscillator();
+            osc1.frequency.setValueAtTime(523.25, audioContext.currentTime);
+            osc2.frequency.setValueAtTime(659.25, audioContext.currentTime);
+            osc1.type = "sine";
+            osc2.type = "sine";
+            osc1.connect(gainNode);
+            osc2.connect(gainNode);
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(
+              0.15,
+              audioContext.currentTime + 0.1
+            );
+            gainNode.gain.exponentialRampToValueAtTime(
+              0.01,
+              audioContext.currentTime + 1.5
+            );
+            osc1.start(audioContext.currentTime);
+            osc2.start(audioContext.currentTime);
+            osc1.stop(audioContext.currentTime + 1.5);
+            osc2.stop(audioContext.currentTime + 1.5);
+            break;
+
+          case "chime":
+            // Gentle wind chime (F4, A4, C5)
+            [349.23, 440, 523.25].forEach((freq, i) => {
+              const osc = audioContext.createOscillator();
+              osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+              osc.type = "sine";
+              osc.connect(gainNode);
+              gainNode.gain.setValueAtTime(
+                0,
+                audioContext.currentTime + i * 0.2
+              );
+              gainNode.gain.linearRampToValueAtTime(
+                0.1,
+                audioContext.currentTime + i * 0.2 + 0.1
+              );
+              gainNode.gain.exponentialRampToValueAtTime(
+                0.01,
+                audioContext.currentTime + i * 0.2 + 1.5
+              );
+              osc.start(audioContext.currentTime + i * 0.2);
+              osc.stop(audioContext.currentTime + i * 0.2 + 1.5);
+            });
+            break;
+
+          case "ding":
+            // Soft single tone ding (G4)
+            const dingOsc = audioContext.createOscillator();
+            dingOsc.frequency.setValueAtTime(392, audioContext.currentTime);
+            dingOsc.type = "sine";
+            dingOsc.connect(gainNode);
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(
+              0.2,
+              audioContext.currentTime + 0.05
+            );
+            gainNode.gain.exponentialRampToValueAtTime(
+              0.01,
+              audioContext.currentTime + 1
+            );
+            dingOsc.start(audioContext.currentTime);
+            dingOsc.stop(audioContext.currentTime + 1);
+            break;
+
+          case "tone":
+            // Meditation bowl tone (low frequency)
+            const toneOsc = audioContext.createOscillator();
+            toneOsc.frequency.setValueAtTime(256, audioContext.currentTime);
+            toneOsc.type = "sine";
+            toneOsc.connect(gainNode);
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(
+              0.15,
+              audioContext.currentTime + 0.3
+            );
+            gainNode.gain.exponentialRampToValueAtTime(
+              0.01,
+              audioContext.currentTime + 3
+            );
+            toneOsc.start(audioContext.currentTime);
+            toneOsc.stop(audioContext.currentTime + 3);
+            break;
+
+          case "gong":
+            // Tibetan gong (multiple harmonics)
+            [200, 300, 400].forEach((freq, i) => {
+              const osc = audioContext.createOscillator();
+              osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+              osc.type = "sine";
+              osc.connect(gainNode);
+              gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+              gainNode.gain.linearRampToValueAtTime(
+                0.1 - i * 0.02,
+                audioContext.currentTime + 0.2
+              );
+              gainNode.gain.exponentialRampToValueAtTime(
+                0.01,
+                audioContext.currentTime + 4
+              );
+              osc.start(audioContext.currentTime);
+              osc.stop(audioContext.currentTime + 4);
+            });
+            break;
+
+          default:
+            // Fall back to bell
+            const defaultOsc1 = audioContext.createOscillator();
+            const defaultOsc2 = audioContext.createOscillator();
+            defaultOsc1.frequency.setValueAtTime(
+              523.25,
+              audioContext.currentTime
+            );
+            defaultOsc2.frequency.setValueAtTime(
+              659.25,
+              audioContext.currentTime
+            );
+            defaultOsc1.type = "sine";
+            defaultOsc2.type = "sine";
+            defaultOsc1.connect(gainNode);
+            defaultOsc2.connect(gainNode);
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(
+              0.15,
+              audioContext.currentTime + 0.1
+            );
+            gainNode.gain.exponentialRampToValueAtTime(
+              0.01,
+              audioContext.currentTime + 1.5
+            );
+            defaultOsc1.start(audioContext.currentTime);
+            defaultOsc2.start(audioContext.currentTime);
+            defaultOsc1.stop(audioContext.currentTime + 1.5);
+            defaultOsc2.stop(audioContext.currentTime + 1.5);
+        }
+      } catch (error) {
+        console.log("Audio not supported:", error);
+      }
+    },
+    [workSoundType]
+  );
+
+  const playBreakSound = useCallback(
+    (soundType = breakSoundType) => {
+      try {
+        const audioContext = new (window.AudioContext ||
+          window.webkitAudioContext)();
+        const gainNode = audioContext.createGain();
+        gainNode.connect(audioContext.destination);
+
+        switch (soundType) {
+          case "alert":
+            // Higher pitched alert bell (A5 and C6)
+            const osc1 = audioContext.createOscillator();
+            osc1.frequency.setValueAtTime(880, audioContext.currentTime);
+            osc1.type = "sine";
+            osc1.connect(gainNode);
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(
+              0.2,
+              audioContext.currentTime + 0.05
+            );
+            gainNode.gain.exponentialRampToValueAtTime(
+              0.01,
+              audioContext.currentTime + 0.8
+            );
+            osc1.start(audioContext.currentTime);
+            osc1.stop(audioContext.currentTime + 0.8);
+
+            // Add a second chime for emphasis
+            setTimeout(() => {
+              const osc2 = audioContext.createOscillator();
+              const gain2 = audioContext.createGain();
+              osc2.frequency.setValueAtTime(1046.5, audioContext.currentTime);
+              osc2.type = "sine";
+              osc2.connect(gain2);
+              gain2.connect(audioContext.destination);
+              gain2.gain.setValueAtTime(0, audioContext.currentTime);
+              gain2.gain.linearRampToValueAtTime(
+                0.15,
+                audioContext.currentTime + 0.05
+              );
+              gain2.gain.exponentialRampToValueAtTime(
+                0.01,
+                audioContext.currentTime + 0.6
+              );
+              osc2.start(audioContext.currentTime);
+              osc2.stop(audioContext.currentTime + 0.6);
+            }, 200);
+            break;
+
+          case "chirp":
+            // Bird-like chirp
+            const chirpOsc = audioContext.createOscillator();
+            chirpOsc.frequency.setValueAtTime(1200, audioContext.currentTime);
+            chirpOsc.frequency.linearRampToValueAtTime(
+              800,
+              audioContext.currentTime + 0.1
+            );
+            chirpOsc.type = "sine";
+            chirpOsc.connect(gainNode);
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(
+              0.2,
+              audioContext.currentTime + 0.02
+            );
+            gainNode.gain.exponentialRampToValueAtTime(
+              0.01,
+              audioContext.currentTime + 0.3
+            );
+            chirpOsc.start(audioContext.currentTime);
+            chirpOsc.stop(audioContext.currentTime + 0.3);
+
+            // Second chirp
+            setTimeout(() => {
+              const chirp2 = audioContext.createOscillator();
+              const gain2 = audioContext.createGain();
+              chirp2.frequency.setValueAtTime(1000, audioContext.currentTime);
+              chirp2.frequency.linearRampToValueAtTime(
+                700,
+                audioContext.currentTime + 0.1
+              );
+              chirp2.type = "sine";
+              chirp2.connect(gain2);
+              gain2.connect(audioContext.destination);
+              gain2.gain.setValueAtTime(0, audioContext.currentTime);
+              gain2.gain.linearRampToValueAtTime(
+                0.2,
+                audioContext.currentTime + 0.02
+              );
+              gain2.gain.exponentialRampToValueAtTime(
+                0.01,
+                audioContext.currentTime + 0.3
+              );
+              chirp2.start(audioContext.currentTime);
+              chirp2.stop(audioContext.currentTime + 0.3);
+            }, 200);
+            break;
+
+          case "beep":
+            // Digital beep pattern
+            [1000, 1000, 1000].forEach((freq, i) => {
+              setTimeout(() => {
+                const beepOsc = audioContext.createOscillator();
+                const beepGain = audioContext.createGain();
+                beepOsc.frequency.setValueAtTime(
+                  freq,
+                  audioContext.currentTime
+                );
+                beepOsc.type = "square";
+                beepOsc.connect(beepGain);
+                beepGain.connect(audioContext.destination);
+                beepGain.gain.setValueAtTime(0.15, audioContext.currentTime);
+                beepGain.gain.exponentialRampToValueAtTime(
+                  0.01,
+                  audioContext.currentTime + 0.15
+                );
+                beepOsc.start(audioContext.currentTime);
+                beepOsc.stop(audioContext.currentTime + 0.15);
+              }, i * 200);
+            });
+            break;
+
+          case "ring":
+            // Phone ring pattern
+            for (let i = 0; i < 3; i++) {
+              setTimeout(() => {
+                const ringOsc1 = audioContext.createOscillator();
+                const ringOsc2 = audioContext.createOscillator();
+                const ringGain = audioContext.createGain();
+                ringOsc1.frequency.setValueAtTime(
+                  440,
+                  audioContext.currentTime
+                );
+                ringOsc2.frequency.setValueAtTime(
+                  480,
+                  audioContext.currentTime
+                );
+                ringOsc1.type = "sine";
+                ringOsc2.type = "sine";
+                ringOsc1.connect(ringGain);
+                ringOsc2.connect(ringGain);
+                ringGain.connect(audioContext.destination);
+                ringGain.gain.setValueAtTime(0.1, audioContext.currentTime);
+                ringGain.gain.exponentialRampToValueAtTime(
+                  0.01,
+                  audioContext.currentTime + 0.3
+                );
+                ringOsc1.start(audioContext.currentTime);
+                ringOsc2.start(audioContext.currentTime);
+                ringOsc1.stop(audioContext.currentTime + 0.3);
+                ringOsc2.stop(audioContext.currentTime + 0.3);
+              }, i * 400);
+            }
+            break;
+
+          case "whistle":
+            // Soft whistle
+            const whistleOsc = audioContext.createOscillator();
+            whistleOsc.frequency.setValueAtTime(2000, audioContext.currentTime);
+            whistleOsc.frequency.linearRampToValueAtTime(
+              1500,
+              audioContext.currentTime + 0.5
+            );
+            whistleOsc.type = "sine";
+            whistleOsc.connect(gainNode);
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(
+              0.1,
+              audioContext.currentTime + 0.1
+            );
+            gainNode.gain.exponentialRampToValueAtTime(
+              0.01,
+              audioContext.currentTime + 0.8
+            );
+            whistleOsc.start(audioContext.currentTime);
+            whistleOsc.stop(audioContext.currentTime + 0.8);
+            break;
+
+          default:
+            // Fall back to alert
+            const defaultOsc1 = audioContext.createOscillator();
+            defaultOsc1.frequency.setValueAtTime(880, audioContext.currentTime);
+            defaultOsc1.type = "sine";
+            defaultOsc1.connect(gainNode);
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(
+              0.2,
+              audioContext.currentTime + 0.05
+            );
+            gainNode.gain.exponentialRampToValueAtTime(
+              0.01,
+              audioContext.currentTime + 0.8
+            );
+            defaultOsc1.start(audioContext.currentTime);
+            defaultOsc1.stop(audioContext.currentTime + 0.8);
+        }
+      } catch (error) {
+        console.log("Audio not supported:", error);
+      }
+    },
+    [breakSoundType]
+  );
+
   // Timer effects
   useEffect(() => {
     if (isActive) {
@@ -223,18 +605,14 @@ const Dashboard = () => {
             setIsActive(false);
             if (isBreak) {
               setIsBreak(false);
-              setTimeLeft(25 * 60); // Back to work timer
+              setTimeLeft(workDuration * 60); // Back to work timer
+              playBreakSound(); // Higher pitched bell for break end
             } else {
               setSessions((prev) => prev + 1);
               setIsBreak(true);
-              setTimeLeft(5 * 60); // Break timer
+              setTimeLeft(breakDuration * 60); // Break timer
+              playWorkSound(); // Calming sound for work end
             }
-            // Play notification sound or show alert
-            alert(
-              isBreak
-                ? "Break time over! Back to work!"
-                : "Work session complete! Time for a break!"
-            );
             return time - 1;
           }
           return time - 1;
@@ -245,7 +623,21 @@ const Dashboard = () => {
     }
 
     return () => clearInterval(intervalRef.current);
-  }, [isActive, isBreak]);
+  }, [
+    isActive,
+    isBreak,
+    workDuration,
+    breakDuration,
+    playBreakSound,
+    playWorkSound,
+  ]);
+
+  // Sync timeLeft with duration changes when timer is not active
+  useEffect(() => {
+    if (!isActive) {
+      setTimeLeft(isBreak ? breakDuration * 60 : workDuration * 60);
+    }
+  }, [workDuration, breakDuration, isBreak, isActive]);
 
   // Timer functions
   const toggleTimer = () => {
@@ -254,18 +646,18 @@ const Dashboard = () => {
 
   const resetTimer = () => {
     setIsActive(false);
-    setTimeLeft(isBreak ? 5 * 60 : 25 * 60);
+    setTimeLeft(isBreak ? breakDuration * 60 : workDuration * 60);
   };
 
   const skipTimer = () => {
     setIsActive(false);
     if (isBreak) {
       setIsBreak(false);
-      setTimeLeft(25 * 60);
+      setTimeLeft(workDuration * 60);
     } else {
       setSessions((prev) => prev + 1);
       setIsBreak(true);
-      setTimeLeft(5 * 60);
+      setTimeLeft(breakDuration * 60);
     }
   };
 
@@ -467,13 +859,7 @@ const Dashboard = () => {
       onDragEnd={handleDragEnd}
     >
       <div className="dashboard">
-        <div className="dashboard-header">
-          <h1>Productive Pomodoro</h1>
-          <div className="session-counter">Sessions completed: {sessions}</div>
-          <Link to="/" className="btn btn-outline btn-sm">
-            Logout
-          </Link>
-        </div>
+        <DashboardHeader sessions={sessions} />
 
         <div className="dashboard-content">
           <div className={`main-layout ${isActive ? "focus-mode" : ""}`}>
@@ -482,6 +868,34 @@ const Dashboard = () => {
               <div
                 className={`timer-card ${isBreak ? "break-mode" : "work-mode"}`}
               >
+                {/* Settings Menu Button */}
+                <button
+                  className="settings-btn"
+                  onClick={() => setShowSettings(!showSettings)}
+                  title="Timer Settings"
+                  disabled={isActive}
+                >
+                  ⚙️
+                </button>
+
+                {/* Settings Panel */}
+                <SettingsPanel
+                  showSettings={showSettings}
+                  isActive={isActive}
+                  workDuration={workDuration}
+                  setWorkDuration={setWorkDuration}
+                  breakDuration={breakDuration}
+                  setBreakDuration={setBreakDuration}
+                  workSoundType={workSoundType}
+                  setWorkSoundType={setWorkSoundType}
+                  breakSoundType={breakSoundType}
+                  setBreakSoundType={setBreakSoundType}
+                  soundOptions={soundOptions}
+                  playWorkSound={playWorkSound}
+                  playBreakSound={playBreakSound}
+                  setShowSettings={setShowSettings}
+                />
+
                 <h2>{isBreak ? "Break Time 🎯" : "Focus Time 🍅"}</h2>
                 <div className="timer-display">{formatTime(timeLeft)}</div>
                 <div className="timer-controls">
