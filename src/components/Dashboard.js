@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import Icon from "@mdi/react";
+import { mdiDotsVertical } from "@mdi/js";
 import {
   DndContext,
   KeyboardSensor,
@@ -508,7 +510,7 @@ const Dashboard = () => {
                   title="Timer Settings"
                   disabled={isActive}
                 >
-                  ⚙️
+                  <Icon path={mdiDotsVertical} size={1} />
                 </button>
 
                 {/* Settings Panel */}
