@@ -136,6 +136,7 @@
   height: fit-content;
   overflow: hidden; /* Ensure clean borders and prevent content overflow */
   box-sizing: border-box; /* Include padding and border in width calculation */
+  position: relative; /* For positioning the settings button */
 }
 
 .timer-card.work-mode {
@@ -150,6 +151,155 @@
   margin-bottom: 20px;
   font-size: 24px;
   font-weight: 600;
+}
+
+/* Timer Settings */
+.settings-btn {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid var(--light-blue);
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(5px);
+}
+
+.settings-btn:hover:not(:disabled) {
+  background: var(--light-blue);
+  transform: scale(1.05);
+}
+
+.settings-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.settings-panel {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  background: var(--white);
+  border: 2px solid var(--primary-blue);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  text-align: left;
+}
+
+.settings-panel h3 {
+  margin: 0 0 15px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--dark-gray);
+  text-align: center;
+}
+
+.settings-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.setting-item label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--dark-gray);
+}
+
+.duration-input {
+  width: 60px;
+  padding: 6px 8px;
+  border: 2px solid var(--light-blue);
+  border-radius: 6px;
+  font-size: 14px;
+  text-align: center;
+  background: var(--white);
+  transition: border-color 0.2s ease;
+}
+
+.duration-input:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
+}
+
+.setting-item span {
+  font-size: 12px;
+  color: var(--medium-gray);
+  font-weight: 500;
+}
+
+.sound-select {
+  min-width: 140px;
+  padding: 6px 8px;
+  border: 2px solid var(--light-blue);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--white);
+  color: var(--dark-gray);
+  transition: border-color 0.2s ease;
+}
+
+.sound-select:focus {
+  outline: none;
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
+}
+
+.play-preview-btn {
+  width: 32px;
+  height: 32px;
+  padding: 4px;
+  background: var(--light-blue);
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.play-preview-btn:hover {
+  background: var(--primary-blue);
+  transform: scale(1.05);
+}
+
+.play-preview-btn:active {
+  transform: scale(0.95);
+}
+
+.close-settings-btn {
+  width: 100%;
+  padding: 8px 16px;
+  margin-top: 15px;
+  background: var(--primary-blue);
+  color: var(--white);
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.close-settings-btn:hover {
+  background: var(--secondary-blue);
 }
 
 .timer-display {
@@ -438,6 +588,16 @@
 .btn-sm {
   padding: 8px 16px;
   font-size: 14px;
+}
+
+.btn-md {
+  padding: 10px 20px;
+  font-size: 15px;
+}
+
+.btn-full {
+  width: 100%;
+  font-size: 16px;
 }
 
 /* Responsive Design */
