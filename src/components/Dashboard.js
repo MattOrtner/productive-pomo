@@ -187,8 +187,8 @@ const DroppableContainer = ({ id, children, className }) => {
 
 const Dashboard = () => {
   // Timer state
-  const [workDuration, setWorkDuration] = useState(0.05); // Work duration in minutes
-  const [breakDuration, setBreakDuration] = useState(0.05); // Break duration in minutes
+  const [workDuration, setWorkDuration] = useState(25); // Work duration in minutes
+  const [breakDuration, setBreakDuration] = useState(5); // Break duration in minutes
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
   const [isActive, setIsActive] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
