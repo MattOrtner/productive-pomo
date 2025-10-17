@@ -495,7 +495,6 @@ const Dashboard = () => {
     >
       <div className="dashboard">
         <DashboardHeader sessions={sessions} />
-
         <div className="dashboard-content">
           <div className={`main-layout ${isActive ? "focus-mode" : ""}`}>
             {/* Timer Section */}

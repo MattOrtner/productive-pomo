@@ -2,6 +2,7 @@
   min-height: 100vh;
   background: var(--light-gray);
   color: var(--dark-gray);
+  transition: background 0.3s, color 0.3s;
 }
 
 .dashboard-header {
@@ -11,7 +12,41 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: background 0.3s, color 0.3s;
 }
+
+.task-item[draggable="true"]:hover {
+  background: var(--light-gray);
+}
+
+.timer-card {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 8px 24px var(--shadow);
+  width: 100%;
+  max-width: 320px;
+  transition: background 0.3s, color 0.3s, border-color 0.3s;
+  height: fit-content;
+  overflow: hidden; /* Ensure clean borders and prevent content overflow */
+  box-sizing: border-box; /* Include padding and border in width calculation */
+  position: relative; /* For positioning the settings button */
+}
+
+.task-item {
+  background: var(--white);
+  border: 1.5px solid var(--light-gray);
+  border-radius: 10px;
+  margin-bottom: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px var(--shadow);
+  transition: background 0.3s, color 0.3s, border-color 0.3s;
+}
+
 /* Animation for timer completion */
 @keyframes pulse {
   0% {
@@ -132,7 +167,7 @@
   box-shadow: 0 8px 24px var(--shadow);
   width: 100%;
   max-width: 320px;
-  transition: all 0.3s ease;
+  transition: background 0.3s, color 0.3s, border-color 0.3s;
   height: fit-content;
   overflow: hidden; /* Ensure clean borders and prevent content overflow */
   box-sizing: border-box; /* Include padding and border in width calculation */
@@ -355,15 +390,23 @@
 
 /* Break Mode Enhancement - Add subtle background change */
 .main-layout.focus-mode .timer-card.break-mode {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  background: var(--break-bg-light);
   border: 4px solid var(--secondary-green);
   border-radius: 20px; /* Ensure border-radius is maintained */
 }
 
+[data-theme="dark"] .main-layout.focus-mode .timer-card.break-mode {
+  background: var(--break-bg-dark);
+}
+
 .main-layout.focus-mode .timer-card.work-mode {
-  background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+  background: var(--work-bg-light);
   border: 4px solid var(--primary-blue);
   border-radius: 20px; /* Ensure border-radius is maintained */
+}
+
+[data-theme="dark"] .main-layout.focus-mode .timer-card.work-mode {
+  background: var(--work-bg-dark);
 }
 
 /* Todo Section */
