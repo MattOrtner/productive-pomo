@@ -1,8 +1,8 @@
-# Productive Pomodoro
+# 🍅 Productive Pomodoro
 
 Productive Pomodoro is a simple Pomodoro timer app to help structure focused work sessions with structured breaks that provide other personal value. It provides configurable session lengths, short/long breaks, and a session history.
 
-## Features
+## ⚡️ Features
 
 - Start/pause/reset Pomodoro sessions
 - Configurable work/break durations
@@ -13,7 +13,7 @@ Productive Pomodoro is a simple Pomodoro timer app to help structure focused wor
 
 - Node.js 16+ and npm (or yarn)
 
-## Quick start (local)
+## 🔌 Quick start (local)
 
 ```bash
 # clone
