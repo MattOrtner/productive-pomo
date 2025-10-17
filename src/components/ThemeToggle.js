@@ -5,13 +5,19 @@ import "./ThemeToggle.css";
 const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme();
   return (
-    <button
-      className={`theme-toggle-btn ${theme}`}
+    <div
+      className="theme-toggle-slider"
       onClick={toggleTheme}
       aria-label="Toggle light and dark mode"
+      role="button"
+      tabIndex={0}
     >
-      {theme === "dark" ? "🌙 Dark" : "☀️ Light"}
-    </button>
+      <div className={`slider-track ${theme}`}>
+        <div className={`slider-thumb ${theme}`}>
+          {theme === "dark" ? "🌙" : "☀️"}
+        </div>
+      </div>
+    </div>
   );
 };
 

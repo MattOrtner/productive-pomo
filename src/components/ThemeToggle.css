@@ -1,0 +1,54 @@
+.theme-toggle-slider {
+  display: inline-block;
+  cursor: pointer;
+  outline: none;
+}
+
+.slider-track {
+  width: 54px;
+  height: 30px;
+  background: var(--light-gray);
+  border-radius: 14px;
+  position: relative;
+  transition: background 0.3s;
+  box-shadow: 0 2px 8px var(--shadow);
+  border: 2px solid var(--medium-gray);
+  display: flex;
+  align-items: center;
+}
+
+.slider-track.dark {
+  background: #23272f;
+  border-color: #4a90e2;
+}
+
+.slider-track.light {
+  background: #f8f9fa;
+  border-color: #7ed321;
+}
+
+.slider-thumb {
+  width: 24px;
+  height: 24px;
+  background: var(--white);
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 2px 6px var(--shadow);
+  transition: left 0.3s, background 0.3s;
+}
+
+.slider-thumb.light {
+  left: 2px;
+  background: #fffbe6;
+}
+
+.slider-thumb.dark {
+  left: 28px;
+  background: #23272f;
+}
