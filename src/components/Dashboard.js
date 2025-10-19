@@ -509,7 +509,16 @@ const Dashboard = () => {
                   title="Timer Settings"
                   disabled={isActive}
                 >
-                  <Icon path={mdiDotsVertical} size={1} />
+                  <Icon
+                    path={mdiDotsVertical}
+                    size={1}
+                    color={
+                      document.documentElement.getAttribute("data-theme") ===
+                      "dark"
+                        ? "#4a90e2"
+                        : undefined
+                    }
+                  />
                 </button>
 
                 {/* Settings Panel */}

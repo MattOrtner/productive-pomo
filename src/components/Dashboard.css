@@ -193,7 +193,7 @@
   position: absolute;
   top: 15px;
   right: 15px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--settings-btn-bg, rgba(255, 255, 255, 0.9));
   border: none;
   width: 36px;
   height: 36px;
@@ -203,6 +203,10 @@
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(5px);
+}
+
+[data-theme="dark"] .settings-btn {
+  --settings-btn-bg: rgba(35, 39, 47, 0.9);
 }
 
 .settings-btn:hover:not(:disabled) {
