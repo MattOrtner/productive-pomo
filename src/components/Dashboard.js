@@ -194,6 +194,7 @@ const Dashboard = () => {
   const [isBreak, setIsBreak] = useState(false);
   const [sessions, setSessions] = useState(0);
   const [showSettings, setShowSettings] = useState(false); // Settings menu visibility
+  const [hasStarted, setHasStarted] = useState(false); // Track if timer has been started
 
   // Sound management using custom hook
   const {
@@ -238,6 +239,7 @@ const Dashboard = () => {
           if (time <= 1) {
             // Timer finished
             setIsActive(false);
+            setHasStarted(false);
             if (isBreak) {
               setIsBreak(false);
               setTimeLeft(workDuration * 60); // Back to work timer
@@ -267,25 +269,32 @@ const Dashboard = () => {
     playWorkSound,
   ]);
 
-  // Sync timeLeft with duration changes when timer is not active
+  // Update timeLeft when duration changes in settings (only if timer hasn't been started)
   useEffect(() => {
-    if (!isActive) {
+    if (!hasStarted && !isActive) {
       setTimeLeft(isBreak ? breakDuration * 60 : workDuration * 60);
     }
-  }, [workDuration, breakDuration, isBreak, isActive]);
+  }, [workDuration, breakDuration, isBreak, hasStarted, isActive]);
 
   // Timer functions
-  const toggleTimer = () => {
-    setIsActive(!isActive);
+  const startTimer = () => {
+    setIsActive(true);
+    setHasStarted(true);
+  };
+
+  const pauseTimer = () => {
+    setIsActive(false);
   };
 
   const resetTimer = () => {
     setIsActive(false);
+    setHasStarted(false);
     setTimeLeft(isBreak ? breakDuration * 60 : workDuration * 60);
   };
 
   const skipTimer = () => {
     setIsActive(false);
+    setHasStarted(false);
     if (isBreak) {
       setIsBreak(false);
       setTimeLeft(workDuration * 60);
@@ -542,14 +551,15 @@ const Dashboard = () => {
                 <h2>{isBreak ? "Break Time 🎯" : "Focus Time 🍅"}</h2>
                 <div className="timer-display">{formatTime(timeLeft)}</div>
                 <div className="timer-controls">
-                  <button
-                    className={`btn ${
-                      isActive ? "btn-secondary" : "btn-primary"
-                    }`}
-                    onClick={toggleTimer}
-                  >
-                    {isActive ? "Pause" : "Start"}
-                  </button>
+                  {!isActive ? (
+                    <button className="btn btn-primary" onClick={startTimer}>
+                      Start
+                    </button>
+                  ) : (
+                    <button className="btn btn-secondary" onClick={pauseTimer}>
+                      Pause
+                    </button>
+                  )}
                   <button className="btn btn-outline" onClick={resetTimer}>
                     Reset
                   </button>
