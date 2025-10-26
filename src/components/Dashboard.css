@@ -159,6 +159,7 @@
 .timer-section {
   display: flex;
   justify-content: center;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .timer-card {
@@ -373,13 +374,19 @@
   align-items: start;
   width: 100%;
   min-width: 0; /* Allows grid to shrink */
-  transition: grid-template-columns 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Focus Mode Layout - Split screen between timer and current tasks */
+/* Focus Mode Layout - Split screen between timer and active todo column */
 .main-layout.focus-mode {
   grid-template-columns: 1fr 1fr;
   gap: 40px;
+}
+
+/* Position visible todo column in the second column during focus modes */
+.main-layout.focus-mode .todo-column:not(.hidden) {
+  grid-column: 2;
+  grid-row: 1;
 }
 
 .main-layout.focus-mode .timer-section {
@@ -418,17 +425,20 @@
 /* Todo Section */
 .todo-section {
   display: contents;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .drag-instructions {
   text-align: center;
   margin-bottom: 30px;
   text-align: center;
+  margin-top: 20px;
   margin-bottom: 20px;
   padding: 12px;
   background: rgba(74, 144, 226, 0.1);
   border-radius: 8px;
   color: var(--medium-gray);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .todo-column {
@@ -439,6 +449,40 @@
   height: fit-content;
   min-width: 0; /* Allows grid item to shrink */
   overflow: hidden; /* Prevents any overflow */
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.todo-column.hidden {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+  pointer-events: none;
+  max-width: 0;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.todo-column.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.todo-column:not(.hidden) {
+  animation: slideInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .todo-header {
