@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Icon from "@mdi/react";
 import { mdiDotsVertical } from "@mdi/js";
 import {
@@ -22,6 +22,7 @@ import DashboardHeader from "./DashboardHeader";
 import SettingsPanel from "./SettingsPanel";
 import useSounds from "../hooks/useSounds";
 import "./Dashboard.css";
+import "./KeyboardShortcuts.css";
 
 // SortableItem component for individual tasks
 const SortableItem = ({ task, onToggle, onDelete, onEdit, listType }) => {
@@ -277,22 +278,22 @@ const Dashboard = () => {
   }, [workDuration, breakDuration, isBreak, hasStarted, isActive]);
 
   // Timer functions
-  const startTimer = () => {
+  const startTimer = useCallback(() => {
     setIsActive(true);
     setHasStarted(true);
-  };
+  }, []);
 
-  const pauseTimer = () => {
+  const pauseTimer = useCallback(() => {
     setIsActive(false);
-  };
+  }, []);
 
-  const resetTimer = () => {
+  const resetTimer = useCallback(() => {
     setIsActive(false);
     setHasStarted(false);
     setTimeLeft(isBreak ? breakDuration * 60 : workDuration * 60);
-  };
+  }, [isBreak, breakDuration, workDuration]);
 
-  const skipTimer = () => {
+  const skipTimer = useCallback(() => {
     setIsActive(false);
     setHasStarted(false);
     if (isBreak) {
@@ -303,7 +304,46 @@ const Dashboard = () => {
       setIsBreak(true);
       setTimeLeft(breakDuration * 60);
     }
-  };
+  }, [isBreak, workDuration, breakDuration]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      // Don't trigger shortcuts if user is typing in an input field
+      if (
+        event.target.tagName === "INPUT" ||
+        event.target.tagName === "TEXTAREA"
+      ) {
+        return;
+      }
+
+      switch (event.code) {
+        case "Space":
+          event.preventDefault();
+          if (isActive) {
+            pauseTimer();
+          } else {
+            startTimer();
+          }
+          break;
+        case "KeyR":
+          event.preventDefault();
+          resetTimer();
+          break;
+        case "KeyS":
+          event.preventDefault();
+          skipTimer();
+          break;
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyPress);
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress);
+    };
+  }, [isActive, startTimer, pauseTimer, resetTimer, skipTimer]);
 
   // Format time display
   const formatTime = (seconds) => {
@@ -552,20 +592,41 @@ const Dashboard = () => {
                 <div className="timer-display">{formatTime(timeLeft)}</div>
                 <div className="timer-controls">
                   {!isActive ? (
-                    <button className="btn btn-primary" onClick={startTimer}>
-                      Start
+                    <button
+                      className="btn btn-primary"
+                      onClick={startTimer}
+                      title="Keyboard shortcut: Space"
+                    >
+                      Start <span className="shortcut-hint">[Space]</span>
                     </button>
                   ) : (
-                    <button className="btn btn-secondary" onClick={pauseTimer}>
-                      Pause
+                    <button
+                      className="btn btn-secondary"
+                      onClick={pauseTimer}
+                      title="Keyboard shortcut: Space"
+                    >
+                      Pause <span className="shortcut-hint">[Space]</span>
                     </button>
                   )}
-                  <button className="btn btn-outline" onClick={resetTimer}>
-                    Reset
+                  <button
+                    className="btn btn-outline"
+                    onClick={resetTimer}
+                    title="Keyboard shortcut: R"
+                  >
+                    Reset <span className="shortcut-hint">[R]</span>
                   </button>
-                  <button className="btn btn-accent" onClick={skipTimer}>
-                    Skip
+                  <button
+                    className="btn btn-accent"
+                    onClick={skipTimer}
+                    title="Keyboard shortcut: S"
+                  >
+                    Skip <span className="shortcut-hint">[S]</span>
                   </button>
+                </div>
+
+                {/* Keyboard shortcuts info */}
+                <div className="shortcuts-info">
+                  <small>💡 Use keyboard shortcuts for quick control</small>
                 </div>
               </div>
             </div>
