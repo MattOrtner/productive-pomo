@@ -310,12 +310,15 @@ const Dashboard = () => {
   useEffect(() => {
     const handleKeyPress = (event) => {
       // Don't trigger shortcuts if user is typing in an input field
-      if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+      if (
+        event.target.tagName === "INPUT" ||
+        event.target.tagName === "TEXTAREA"
+      ) {
         return;
       }
 
       switch (event.code) {
-        case 'Space':
+        case "Space":
           event.preventDefault();
           if (isActive) {
             pauseTimer();
@@ -323,11 +326,11 @@ const Dashboard = () => {
             startTimer();
           }
           break;
-        case 'KeyR':
+        case "KeyR":
           event.preventDefault();
           resetTimer();
           break;
-        case 'KeyS':
+        case "KeyS":
           event.preventDefault();
           skipTimer();
           break;
@@ -336,9 +339,9 @@ const Dashboard = () => {
       }
     };
 
-    document.addEventListener('keydown', handleKeyPress);
+    document.addEventListener("keydown", handleKeyPress);
     return () => {
-      document.removeEventListener('keydown', handleKeyPress);
+      document.removeEventListener("keydown", handleKeyPress);
     };
   }, [isActive, startTimer, pauseTimer, resetTimer, skipTimer]);
 
@@ -589,38 +592,38 @@ const Dashboard = () => {
                 <div className="timer-display">{formatTime(timeLeft)}</div>
                 <div className="timer-controls">
                   {!isActive ? (
-                    <button 
-                      className="btn btn-primary" 
+                    <button
+                      className="btn btn-primary"
                       onClick={startTimer}
                       title="Keyboard shortcut: Space"
                     >
                       Start <span className="shortcut-hint">[Space]</span>
                     </button>
                   ) : (
-                    <button 
-                      className="btn btn-secondary" 
+                    <button
+                      className="btn btn-secondary"
                       onClick={pauseTimer}
                       title="Keyboard shortcut: Space"
                     >
                       Pause <span className="shortcut-hint">[Space]</span>
                     </button>
                   )}
-                  <button 
-                    className="btn btn-outline" 
+                  <button
+                    className="btn btn-outline"
                     onClick={resetTimer}
                     title="Keyboard shortcut: R"
                   >
                     Reset <span className="shortcut-hint">[R]</span>
                   </button>
-                  <button 
-                    className="btn btn-accent" 
+                  <button
+                    className="btn btn-accent"
                     onClick={skipTimer}
                     title="Keyboard shortcut: S"
                   >
                     Skip <span className="shortcut-hint">[S]</span>
                   </button>
                 </div>
-                
+
                 {/* Keyboard shortcuts info */}
                 <div className="shortcuts-info">
                   <small>💡 Use keyboard shortcuts for quick control</small>
