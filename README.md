@@ -4,10 +4,11 @@ Productive Pomodoro is a simple Pomodoro timer app to help structure focused wor
 
 ## ⚡️ Features
 
-- Start/pause/reset Pomodoro sessions
+- Start/pause/reset/skip Pomodoro sessions
 - Configurable work/break durations
 - Light/Dark theme
 - Drag and Drop lists
+- Keyboard shortcuts for efficient functionality
 
 ## Prerequisites
 
@@ -19,9 +20,6 @@ Productive Pomodoro is a simple Pomodoro timer app to help structure focused wor
 # clone
 git clone https://github.com/your-org/productive_pomodoro.git
 cd productive_pomodoro
-
-# copy environment example
-cp .env.example .env
 
 # install dependencies
 npm install

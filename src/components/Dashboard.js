@@ -633,95 +633,97 @@ const Dashboard = () => {
 
             {/* Todo Lists Section */}
             <div className="todo-section">
-              {/* Work Tasks - Hidden during break time */}
-              {!(isActive && isBreak) && (
-                <div className="todo-column">
-                  <div className="todo-header">
-                    <h3>🎯 Current Tasks</h3>
-                    <small>Focus on these during work sessions</small>
-                  </div>
-                  <form onSubmit={addWorkTask} className="add-task-form">
-                    <input
-                      type="text"
-                      placeholder="Add a new task..."
-                      value={newWorkTask}
-                      onChange={(e) => setNewWorkTask(e.target.value)}
-                      className="form-input"
-                    />
-                    <button type="submit" className="btn btn-primary btn-sm">
-                      Add
-                    </button>
-                  </form>
-
-                  <DroppableContainer id="work-list" className="task-list">
-                    <SortableContext
-                      items={workTasks.map((task) => task.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {workTasks.length === 0 && (
-                        <div className="empty-list-message">
-                          No tasks yet. Add one above!
-                        </div>
-                      )}
-                      {workTasks.map((task) => (
-                        <SortableItem
-                          key={task.id}
-                          task={task}
-                          onToggle={toggleWorkTask}
-                          onDelete={deleteWorkTask}
-                          onEdit={editWorkTask}
-                          listType="work"
-                        />
-                      ))}
-                    </SortableContext>
-                  </DroppableContainer>
+              {/* Work Tasks - Show during work time or when timer is inactive */}
+              <div
+                className={`todo-column ${isActive && isBreak ? "hidden" : ""}`}
+              >
+                <div className="todo-header">
+                  <h3>🎯 Current Tasks</h3>
+                  <small>Focus on these during work sessions</small>
                 </div>
-              )}
+                <form onSubmit={addWorkTask} className="add-task-form">
+                  <input
+                    type="text"
+                    placeholder="Add a new task..."
+                    value={newWorkTask}
+                    onChange={(e) => setNewWorkTask(e.target.value)}
+                    className="form-input"
+                  />
+                  <button type="submit" className="btn btn-primary btn-sm">
+                    Add
+                  </button>
+                </form>
 
-              {/* Break Activities - Hidden during focus time, shown during break time and when timer is inactive */}
-              {!(isActive && !isBreak) && (
-                <div className="todo-column">
-                  <div className="todo-header">
-                    <h3>🌟 Break Activities</h3>
-                    <small>Recharge with these during breaks</small>
-                  </div>
-                  <form onSubmit={addBreakTask} className="add-task-form">
-                    <input
-                      type="text"
-                      placeholder="Add a break activity..."
-                      value={newBreakTask}
-                      onChange={(e) => setNewBreakTask(e.target.value)}
-                      className="form-input"
-                    />
-                    <button type="submit" className="btn btn-secondary btn-sm">
-                      Add
-                    </button>
-                  </form>
+                <DroppableContainer id="work-list" className="task-list">
+                  <SortableContext
+                    items={workTasks.map((task) => task.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {workTasks.length === 0 && (
+                      <div className="empty-list-message">
+                        No tasks yet. Add one above!
+                      </div>
+                    )}
+                    {workTasks.map((task) => (
+                      <SortableItem
+                        key={task.id}
+                        task={task}
+                        onToggle={toggleWorkTask}
+                        onDelete={deleteWorkTask}
+                        onEdit={editWorkTask}
+                        listType="work"
+                      />
+                    ))}
+                  </SortableContext>
+                </DroppableContainer>
+              </div>
 
-                  <DroppableContainer id="break-list" className="task-list">
-                    <SortableContext
-                      items={breakTasks.map((task) => task.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {breakTasks.length === 0 && (
-                        <div className="empty-list-message">
-                          No activities yet. Add one above!
-                        </div>
-                      )}
-                      {breakTasks.map((task) => (
-                        <SortableItem
-                          key={task.id}
-                          task={task}
-                          onToggle={toggleBreakTask}
-                          onDelete={deleteBreakTask}
-                          onEdit={editBreakTask}
-                          listType="break"
-                        />
-                      ))}
-                    </SortableContext>
-                  </DroppableContainer>
+              {/* Break Activities - Show during break time or when timer is inactive */}
+              <div
+                className={`todo-column ${
+                  isActive && !isBreak ? "hidden" : ""
+                }`}
+              >
+                <div className="todo-header">
+                  <h3>🌟 Break Activities</h3>
+                  <small>Recharge with these during breaks</small>
                 </div>
-              )}
+                <form onSubmit={addBreakTask} className="add-task-form">
+                  <input
+                    type="text"
+                    placeholder="Add a break activity..."
+                    value={newBreakTask}
+                    onChange={(e) => setNewBreakTask(e.target.value)}
+                    className="form-input"
+                  />
+                  <button type="submit" className="btn btn-secondary btn-sm">
+                    Add
+                  </button>
+                </form>
+
+                <DroppableContainer id="break-list" className="task-list">
+                  <SortableContext
+                    items={breakTasks.map((task) => task.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    {breakTasks.length === 0 && (
+                      <div className="empty-list-message">
+                        No activities yet. Add one above!
+                      </div>
+                    )}
+                    {breakTasks.map((task) => (
+                      <SortableItem
+                        key={task.id}
+                        task={task}
+                        onToggle={toggleBreakTask}
+                        onDelete={deleteBreakTask}
+                        onEdit={editBreakTask}
+                        listType="break"
+                      />
+                    ))}
+                  </SortableContext>
+                </DroppableContainer>
+              </div>
             </div>
           </div>
 
