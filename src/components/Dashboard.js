@@ -197,6 +197,10 @@ const Dashboard = () => {
   const [showSettings, setShowSettings] = useState(false); // Settings menu visibility
   const [hasStarted, setHasStarted] = useState(false); // Track if timer has been started
 
+  // Timer refs for accuracy across tab switches
+  const startTimeRef = useRef(null);
+  const initialTimeRef = useRef(null);
+
   // Sound management using custom hook
   const {
     workSoundType,
@@ -232,35 +236,49 @@ const Dashboard = () => {
     })
   );
 
-  // Timer effects
+  // Timer effects with timestamp-based accuracy to prevent tab throttling
   useEffect(() => {
     if (isActive) {
+      // Only set start time if it's not already set (timer just started)
+      if (!startTimeRef.current) {
+        startTimeRef.current = Date.now();
+        initialTimeRef.current = timeLeft;
+      }
+
       intervalRef.current = setInterval(() => {
-        setTimeLeft((time) => {
-          if (time <= 1) {
-            // Timer finished
+        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+        const newTimeLeft = Math.max(0, initialTimeRef.current - elapsed);
+
+        setTimeLeft((currentTime) => {
+          if (newTimeLeft <= 0 && currentTime > 0) {
+            // Timer finished - reset refs
+            startTimeRef.current = null;
+            initialTimeRef.current = null;
             setIsActive(false);
             setHasStarted(false);
             if (isBreak) {
               setIsBreak(false);
-              setTimeLeft(workDuration * 60); // Back to work timer
               playBreakSound(); // Higher pitched bell for break end
             } else {
               setSessions((prev) => prev + 1);
               setIsBreak(true);
-              setTimeLeft(breakDuration * 60); // Break timer
               playWorkSound(); // Calming sound for work end
             }
-            return time - 1;
+            return 0;
           }
-          return time - 1;
+          return newTimeLeft;
         });
-      }, 1000);
+      }, 100); // Check every 100ms for smooth updates
     } else {
       clearInterval(intervalRef.current);
+      // Reset timer refs when stopped
+      startTimeRef.current = null;
+      initialTimeRef.current = null;
     }
 
     return () => clearInterval(intervalRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // timeLeft is intentionally excluded to prevent effect re-runs that would reset the timer
   }, [
     isActive,
     isBreak,
@@ -276,6 +294,14 @@ const Dashboard = () => {
       setTimeLeft(isBreak ? breakDuration * 60 : workDuration * 60);
     }
   }, [workDuration, breakDuration, isBreak, hasStarted, isActive]);
+
+  // Handle timer transitions between work and break
+  useEffect(() => {
+    if (!isActive && hasStarted) {
+      // Timer just finished, set up for next phase
+      setTimeLeft(isBreak ? breakDuration * 60 : workDuration * 60);
+    }
+  }, [isActive, hasStarted, isBreak, workDuration, breakDuration]);
 
   // Timer functions
   const startTimer = useCallback(() => {
