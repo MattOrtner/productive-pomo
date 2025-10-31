@@ -1,9 +1,56 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 
 const useSounds = () => {
   // Sound settings state
   const [workSoundType, setWorkSoundType] = useState("bell");
   const [breakSoundType, setBreakSoundType] = useState("alert");
+  
+  // Persistent AudioContext for mobile compatibility
+  const audioContextRef = useRef(null);
+  const [isAudioReady, setIsAudioReady] = useState(false);
+
+  // Initialize AudioContext and handle mobile requirements
+  const initAudioContext = useCallback(() => {
+    if (!audioContextRef.current) {
+      try {
+        audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (error) {
+        console.warn("Web Audio API not supported:", error);
+        return false;
+      }
+    }
+
+    // Resume AudioContext if suspended (required for mobile)
+    if (audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume().then(() => {
+        setIsAudioReady(true);
+      }).catch((error) => {
+        console.warn("Could not resume AudioContext:", error);
+      });
+    } else {
+      setIsAudioReady(true);
+    }
+    
+    return true;
+  }, []);
+
+  // Set up user interaction listeners for mobile
+  useEffect(() => {
+    const handleUserInteraction = () => {
+      initAudioContext();
+      // Remove listeners after first interaction
+      document.removeEventListener('touchstart', handleUserInteraction);
+      document.removeEventListener('click', handleUserInteraction);
+    };
+
+    document.addEventListener('touchstart', handleUserInteraction, { passive: true });
+    document.addEventListener('click', handleUserInteraction);
+
+    return () => {
+      document.removeEventListener('touchstart', handleUserInteraction);
+      document.removeEventListener('click', handleUserInteraction);
+    };
+  }, [initAudioContext]);
 
   const soundOptions = {
     work: {
@@ -25,9 +72,14 @@ const useSounds = () => {
   // Sound functions with multiple options
   const playWorkSound = useCallback(
     (soundType = workSoundType) => {
+      // Ensure AudioContext is initialized and ready
+      if (!initAudioContext() || !audioContextRef.current || audioContextRef.current.state !== 'running') {
+        console.warn("AudioContext not ready for playback");
+        return;
+      }
+
       try {
-        const audioContext = new (window.AudioContext ||
-          window.webkitAudioContext)();
+        const audioContext = audioContextRef.current;
         const gainNode = audioContext.createGain();
         gainNode.connect(audioContext.destination);
 
@@ -174,14 +226,19 @@ const useSounds = () => {
         console.log("Audio not supported:", error);
       }
     },
-    [workSoundType]
+    [workSoundType, initAudioContext]
   );
 
   const playBreakSound = useCallback(
     (soundType = breakSoundType) => {
+      // Ensure AudioContext is initialized and ready
+      if (!initAudioContext() || !audioContextRef.current || audioContextRef.current.state !== 'running') {
+        console.warn("AudioContext not ready for playback");
+        return;
+      }
+
       try {
-        const audioContext = new (window.AudioContext ||
-          window.webkitAudioContext)();
+        const audioContext = audioContextRef.current;
         const gainNode = audioContext.createGain();
         gainNode.connect(audioContext.destination);
 
@@ -376,7 +433,7 @@ const useSounds = () => {
         console.log("Audio not supported:", error);
       }
     },
-    [breakSoundType]
+    [breakSoundType, initAudioContext]
   );
 
   return {
@@ -387,6 +444,7 @@ const useSounds = () => {
     soundOptions,
     playWorkSound,
     playBreakSound,
+    isAudioReady,
   };
 };
 
