@@ -200,6 +200,8 @@ const Dashboard = () => {
   // Timer refs for accuracy across tab switches
   const startTimeRef = useRef(null);
   const initialTimeRef = useRef(null);
+  const pausedTimeRef = useRef(null);
+  const lastTimeLeftRef = useRef(timeLeft);
 
   // Sound management using custom hook
   const {
@@ -239,10 +241,16 @@ const Dashboard = () => {
   // Timer effects with timestamp-based accuracy to prevent tab throttling
   useEffect(() => {
     if (isActive) {
-      // Only set start time if it's not already set (timer just started)
-      if (!startTimeRef.current) {
+      // Only reset timer if this is a fresh start (not during countdown updates)
+      const isNewStart = !startTimeRef.current || 
+                        pausedTimeRef.current !== null || 
+                        lastTimeLeftRef.current !== timeLeft;
+      
+      if (isNewStart) {
         startTimeRef.current = Date.now();
-        initialTimeRef.current = timeLeft;
+        initialTimeRef.current = pausedTimeRef.current || timeLeft;
+        pausedTimeRef.current = null; // Clear paused time after using it
+        lastTimeLeftRef.current = timeLeft;
       }
 
       intervalRef.current = setInterval(() => {
@@ -254,6 +262,7 @@ const Dashboard = () => {
             // Timer finished - reset refs
             startTimeRef.current = null;
             initialTimeRef.current = null;
+            pausedTimeRef.current = null;
             setIsActive(false);
             setHasStarted(false);
             if (isBreak) {
@@ -271,14 +280,11 @@ const Dashboard = () => {
       }, 100); // Check every 100ms for smooth updates
     } else {
       clearInterval(intervalRef.current);
-      // Reset timer refs when stopped
+      // Reset start time when paused to allow fresh start on resume
       startTimeRef.current = null;
-      initialTimeRef.current = null;
     }
 
     return () => clearInterval(intervalRef.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    // timeLeft is intentionally excluded to prevent effect re-runs that would reset the timer
   }, [
     isActive,
     isBreak,
@@ -286,6 +292,7 @@ const Dashboard = () => {
     breakDuration,
     playBreakSound,
     playWorkSound,
+    timeLeft,
   ]);
 
   // Update timeLeft when duration changes in settings (only if timer hasn't been started)
@@ -295,10 +302,10 @@ const Dashboard = () => {
     }
   }, [workDuration, breakDuration, isBreak, hasStarted, isActive]);
 
-  // Handle timer transitions between work and break
+  // Handle timer transitions between work and break (only when timer finishes, not when paused)
   useEffect(() => {
-    if (!isActive && hasStarted) {
-      // Timer just finished, set up for next phase
+    if (!isActive && !hasStarted) {
+      // Timer just finished (hasStarted was reset), set up for next phase
       setTimeLeft(isBreak ? breakDuration * 60 : workDuration * 60);
     }
   }, [isActive, hasStarted, isBreak, workDuration, breakDuration]);
@@ -310,13 +317,19 @@ const Dashboard = () => {
   }, []);
 
   const pauseTimer = useCallback(() => {
+    // Capture current time when pausing
+    pausedTimeRef.current = timeLeft;
     setIsActive(false);
-  }, []);
+  }, [timeLeft]);
 
   const resetTimer = useCallback(() => {
     setIsActive(false);
     setHasStarted(false);
     setTimeLeft(isBreak ? breakDuration * 60 : workDuration * 60);
+    // Reset timer refs when explicitly resetting
+    startTimeRef.current = null;
+    initialTimeRef.current = null;
+    pausedTimeRef.current = null;
   }, [isBreak, breakDuration, workDuration]);
 
   const skipTimer = useCallback(() => {
