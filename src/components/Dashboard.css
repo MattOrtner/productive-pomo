@@ -10,6 +10,7 @@
   padding: 20px;
   box-shadow: 0 2px 8px var(--shadow);
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
   transition: background 0.3s, color 0.3s;
@@ -734,9 +735,10 @@
 
 @media (max-width: 768px) {
   .dashboard-header {
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
   }
 
   .dashboard-header h1 {

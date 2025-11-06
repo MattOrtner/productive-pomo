@@ -242,10 +242,11 @@ const Dashboard = () => {
   useEffect(() => {
     if (isActive) {
       // Only reset timer if this is a fresh start (not during countdown updates)
-      const isNewStart = !startTimeRef.current || 
-                        pausedTimeRef.current !== null || 
-                        lastTimeLeftRef.current !== timeLeft;
-      
+      const isNewStart =
+        !startTimeRef.current ||
+        pausedTimeRef.current !== null ||
+        lastTimeLeftRef.current !== timeLeft;
+
       if (isNewStart) {
         startTimeRef.current = Date.now();
         initialTimeRef.current = pausedTimeRef.current || timeLeft;
