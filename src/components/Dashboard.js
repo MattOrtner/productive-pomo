@@ -197,6 +197,12 @@ const Dashboard = () => {
   const [showSettings, setShowSettings] = useState(false); // Settings menu visibility
   const [hasStarted, setHasStarted] = useState(false); // Track if timer has been started
 
+  // Timer refs for accuracy across tab switches
+  const startTimeRef = useRef(null);
+  const initialTimeRef = useRef(null);
+  const pausedTimeRef = useRef(null);
+  const lastTimeLeftRef = useRef(timeLeft);
+
   // Sound management using custom hook
   const {
     workSoundType,
@@ -232,32 +238,51 @@ const Dashboard = () => {
     })
   );
 
-  // Timer effects
+  // Timer effects with timestamp-based accuracy to prevent tab throttling
   useEffect(() => {
     if (isActive) {
+      // Only reset timer if this is a fresh start (not during countdown updates)
+      const isNewStart =
+        !startTimeRef.current ||
+        pausedTimeRef.current !== null ||
+        lastTimeLeftRef.current !== timeLeft;
+
+      if (isNewStart) {
+        startTimeRef.current = Date.now();
+        initialTimeRef.current = pausedTimeRef.current || timeLeft;
+        pausedTimeRef.current = null; // Clear paused time after using it
+        lastTimeLeftRef.current = timeLeft;
+      }
+
       intervalRef.current = setInterval(() => {
-        setTimeLeft((time) => {
-          if (time <= 1) {
-            // Timer finished
+        const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+        const newTimeLeft = Math.max(0, initialTimeRef.current - elapsed);
+
+        setTimeLeft((currentTime) => {
+          if (newTimeLeft <= 0 && currentTime > 0) {
+            // Timer finished - reset refs
+            startTimeRef.current = null;
+            initialTimeRef.current = null;
+            pausedTimeRef.current = null;
             setIsActive(false);
             setHasStarted(false);
             if (isBreak) {
               setIsBreak(false);
-              setTimeLeft(workDuration * 60); // Back to work timer
               playBreakSound(); // Higher pitched bell for break end
             } else {
               setSessions((prev) => prev + 1);
               setIsBreak(true);
-              setTimeLeft(breakDuration * 60); // Break timer
               playWorkSound(); // Calming sound for work end
             }
-            return time - 1;
+            return 0;
           }
-          return time - 1;
+          return newTimeLeft;
         });
-      }, 1000);
+      }, 100); // Check every 100ms for smooth updates
     } else {
       clearInterval(intervalRef.current);
+      // Reset start time when paused to allow fresh start on resume
+      startTimeRef.current = null;
     }
 
     return () => clearInterval(intervalRef.current);
@@ -268,6 +293,7 @@ const Dashboard = () => {
     breakDuration,
     playBreakSound,
     playWorkSound,
+    timeLeft,
   ]);
 
   // Update timeLeft when duration changes in settings (only if timer hasn't been started)
@@ -277,6 +303,14 @@ const Dashboard = () => {
     }
   }, [workDuration, breakDuration, isBreak, hasStarted, isActive]);
 
+  // Handle timer transitions between work and break (only when timer finishes, not when paused)
+  useEffect(() => {
+    if (!isActive && !hasStarted) {
+      // Timer just finished (hasStarted was reset), set up for next phase
+      setTimeLeft(isBreak ? breakDuration * 60 : workDuration * 60);
+    }
+  }, [isActive, hasStarted, isBreak, workDuration, breakDuration]);
+
   // Timer functions
   const startTimer = useCallback(() => {
     setIsActive(true);
@@ -284,13 +318,19 @@ const Dashboard = () => {
   }, []);
 
   const pauseTimer = useCallback(() => {
+    // Capture current time when pausing
+    pausedTimeRef.current = timeLeft;
     setIsActive(false);
-  }, []);
+  }, [timeLeft]);
 
   const resetTimer = useCallback(() => {
     setIsActive(false);
     setHasStarted(false);
     setTimeLeft(isBreak ? breakDuration * 60 : workDuration * 60);
+    // Reset timer refs when explicitly resetting
+    startTimeRef.current = null;
+    initialTimeRef.current = null;
+    pausedTimeRef.current = null;
   }, [isBreak, breakDuration, workDuration]);
 
   const skipTimer = useCallback(() => {
