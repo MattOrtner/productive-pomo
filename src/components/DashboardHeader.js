@@ -8,9 +8,9 @@ const DashboardHeader = ({ sessions }) => {
       <h1>Productive Pomodoro</h1>
       <div className="session-counter">Sessions completed: {sessions}</div>
       <ThemeToggle />
-      <Link to="/" className="btn btn-outline btn-sm">
+      {/* <Link to="/" className="btn btn-outline btn-sm">
         Logout
-      </Link>
+      </Link> */}
     </div>
   );
 };
