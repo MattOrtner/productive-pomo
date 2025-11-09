@@ -2,6 +2,7 @@
   display: inline-block;
   cursor: pointer;
   outline: none;
+  padding-right: 1rem;
 }
 
 .slider-track {

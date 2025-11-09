@@ -15,7 +15,7 @@ function AppContent() {
   return (
     <div className="App">
       <Dashboard />
-      {showAuthModal && <AuthModal onClose={handleCloseModal} />}
+      {/* {showAuthModal && <AuthModal onClose={handleCloseModal} />} */}
     </div>
   );
 }
