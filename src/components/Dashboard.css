@@ -631,6 +631,10 @@
   margin-right: 8px;
 }
 
+[data-theme="dark"] .task-edit-input {
+  color: white;
+}
+
 .task-edit-input:focus {
   border-color: var(--secondary-blue);
   box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.1);
