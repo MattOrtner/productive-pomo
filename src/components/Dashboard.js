@@ -71,15 +71,11 @@ const SortableItem = ({ task, onToggle, onDelete, onEdit, listType }) => {
     }
   };
 
-  const handleSaveClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleSaveClick = () => {
     handleSave();
   };
 
-  const handleCancelClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleCancelClick = () => {
     handleCancel();
   };
 
@@ -128,7 +124,7 @@ const SortableItem = ({ task, onToggle, onDelete, onEdit, listType }) => {
           <>
             <button
               className="save-btn"
-              onMouseDown={handleSaveClick}
+              onClick={handleSaveClick}
               title="Save"
               type="button"
             >
@@ -136,7 +132,7 @@ const SortableItem = ({ task, onToggle, onDelete, onEdit, listType }) => {
             </button>
             <button
               className="cancel-btn"
-              onMouseDown={handleCancelClick}
+              onClick={handleCancelClick}
               title="Cancel"
               type="button"
             >
@@ -214,21 +210,57 @@ const Dashboard = () => {
     playBreakSound,
   } = useSounds();
 
-  // Todo lists state
-  const [workTasks, setWorkTasks] = useState([
-    { id: "work-1", text: "Complete project documentation", completed: false },
-    { id: "work-2", text: "Review pull requests", completed: false },
-  ]);
-  const [breakTasks, setBreakTasks] = useState([
-    { id: "break-1", text: "Do 10 push-ups", completed: false },
-    { id: "break-2", text: "Drink water", completed: false },
-    { id: "break-3", text: "Take deep breaths", completed: false },
-  ]);
+  // Load tasks from localStorage or use defaults
+  const loadTasksFromStorage = (key, defaultTasks) => {
+    try {
+      const saved = localStorage.getItem(key);
+      return saved ? JSON.parse(saved) : defaultTasks;
+    } catch (error) {
+      console.warn(`Failed to load ${key} from localStorage:`, error);
+      return defaultTasks;
+    }
+  };
+
+  // Todo lists state with localStorage persistence
+  const [workTasks, setWorkTasks] = useState(() =>
+    loadTasksFromStorage("pomodoro-work-tasks", [
+      {
+        id: "work-1",
+        text: "Complete project documentation",
+        completed: false,
+      },
+      { id: "work-2", text: "Review pull requests", completed: false },
+    ])
+  );
+  const [breakTasks, setBreakTasks] = useState(() =>
+    loadTasksFromStorage("pomodoro-break-tasks", [
+      { id: "break-1", text: "Do 10 push-ups", completed: false },
+      { id: "break-2", text: "Drink water", completed: false },
+      { id: "break-3", text: "Take deep breaths", completed: false },
+    ])
+  );
 
   const [newWorkTask, setNewWorkTask] = useState("");
   const [newBreakTask, setNewBreakTask] = useState("");
 
   const intervalRef = useRef(null);
+
+  // Save tasks to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem("pomodoro-work-tasks", JSON.stringify(workTasks));
+    } catch (error) {
+      console.warn("Failed to save work tasks to localStorage:", error);
+    }
+  }, [workTasks]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("pomodoro-break-tasks", JSON.stringify(breakTasks));
+    } catch (error) {
+      console.warn("Failed to save break tasks to localStorage:", error);
+    }
+  }, [breakTasks]);
 
   // @dnd-kit sensors
   const sensors = useSensors(
