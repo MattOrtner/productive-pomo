@@ -199,6 +199,10 @@ const Dashboard = () => {
   const pausedTimeRef = useRef(null);
   const lastTimeLeftRef = useRef(timeLeft);
 
+  // Input refs for keyboard shortcuts
+  const workInputRef = useRef(null);
+  const breakInputRef = useRef(null);
+
   // Sound management using custom hook
   const {
     workSoundType,
@@ -335,14 +339,6 @@ const Dashboard = () => {
     }
   }, [workDuration, breakDuration, isBreak, hasStarted, isActive]);
 
-  // Handle timer transitions between work and break (only when timer finishes, not when paused)
-  useEffect(() => {
-    if (!isActive && !hasStarted) {
-      // Timer just finished (hasStarted was reset), set up for next phase
-      setTimeLeft(isBreak ? breakDuration * 60 : workDuration * 60);
-    }
-  }, [isActive, hasStarted, isBreak, workDuration, breakDuration]);
-
   // Timer functions
   const startTimer = useCallback(() => {
     setIsActive(true);
@@ -368,6 +364,10 @@ const Dashboard = () => {
   const skipTimer = useCallback(() => {
     setIsActive(false);
     setHasStarted(false);
+    // Clear timer refs when skipping to prevent paused time from affecting next timer
+    startTimeRef.current = null;
+    initialTimeRef.current = null;
+    pausedTimeRef.current = null;
     if (isBreak) {
       setIsBreak(false);
       setTimeLeft(workDuration * 60);
@@ -381,30 +381,52 @@ const Dashboard = () => {
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyPress = (event) => {
-      // Don't trigger shortcuts if user is typing in an input field
-      if (
-        event.target.tagName === "INPUT" ||
-        event.target.tagName === "TEXTAREA"
-      ) {
+      const isInInputField =
+        event.target.tagName === "INPUT" || event.target.tagName === "TEXTAREA";
+
+      // Block timer shortcuts when typing in input fields
+      if (isInInputField && !event.altKey) {
         return;
       }
 
       switch (event.code) {
         case "Space":
-          event.preventDefault();
-          if (isActive) {
-            pauseTimer();
-          } else {
-            startTimer();
+          if (!event.altKey) {
+            event.preventDefault();
+            if (isActive) {
+              pauseTimer();
+            } else {
+              startTimer();
+            }
           }
           break;
         case "KeyR":
-          event.preventDefault();
-          resetTimer();
+          if (!event.altKey) {
+            event.preventDefault();
+            resetTimer();
+          }
           break;
         case "KeyS":
-          event.preventDefault();
-          skipTimer();
+          if (!event.altKey) {
+            event.preventDefault();
+            skipTimer();
+          }
+          break;
+        case "KeyW":
+          if (event.altKey) {
+            event.preventDefault();
+            if (workInputRef.current) {
+              workInputRef.current.focus();
+            }
+          }
+          break;
+        case "KeyB":
+          if (event.altKey) {
+            event.preventDefault();
+            if (breakInputRef.current) {
+              breakInputRef.current.focus();
+            }
+          }
           break;
         default:
           break;
@@ -698,7 +720,22 @@ const Dashboard = () => {
 
                 {/* Keyboard shortcuts info */}
                 <div className="shortcuts-info">
-                  <small>💡 Use keyboard shortcuts for quick control</small>
+                  <medium className="shortcuts-label">Shortcuts:</medium>
+                  <li className="shortcut-message">
+                    <small>[Space] Start/Pause</small>
+                  </li>
+                  <li className="shortcut-message">
+                    <small>[R] Reset</small>
+                  </li>
+                  <li className="shortcut-message">
+                    <small>[S] Skip</small>
+                  </li>
+                  <li className="shortcut-message">
+                    <small>[Alt+W] Work Input</small>
+                  </li>
+                  <li className="shortcut-message">
+                    <small>[Alt+B] Break Input</small>
+                  </li>
                 </div>
               </div>
             </div>
@@ -715,6 +752,7 @@ const Dashboard = () => {
                 </div>
                 <form onSubmit={addWorkTask} className="add-task-form">
                   <input
+                    ref={workInputRef}
                     type="text"
                     placeholder="Add a new task..."
                     value={newWorkTask}
@@ -762,6 +800,7 @@ const Dashboard = () => {
                 </div>
                 <form onSubmit={addBreakTask} className="add-task-form">
                   <input
+                    ref={breakInputRef}
                     type="text"
                     placeholder="Add a break activity..."
                     value={newBreakTask}

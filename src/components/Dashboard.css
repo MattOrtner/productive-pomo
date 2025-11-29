@@ -823,6 +823,16 @@
   z-index: 1000;
 }
 
+.shortcuts-label {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.shortcut-message {
+  list-style: none;
+  margin: 4px 0;
+}
+
 /* Animation for timer completion */
 @keyframes pulse {
   0% {
