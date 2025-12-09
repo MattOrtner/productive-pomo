@@ -1,4 +1,10 @@
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
 .dashboard {
+  flex: 1;
   min-height: 100vh;
   background: var(--light-gray);
   color: var(--dark-gray);
@@ -495,10 +501,37 @@
   text-align: center;
 }
 
+.todo-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
 .todo-header h3 {
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 4px;
+}
+
+.save-template-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.save-template-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--primary);
+  color: var(--primary);
+  opacity: 1;
+  transform: translateY(-1px);
 }
 
 .todo-header small {

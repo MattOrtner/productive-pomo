@@ -20,6 +20,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import DashboardHeader from "./DashboardHeader";
 import SettingsPanel from "./SettingsPanel";
+import TemplatesSidebar from "./TemplatesSidebar";
 import useSounds from "../hooks/useSounds";
 import "./Dashboard.css";
 import "./KeyboardShortcuts.css";
@@ -247,6 +248,18 @@ const Dashboard = () => {
   const [newWorkTask, setNewWorkTask] = useState("");
   const [newBreakTask, setNewBreakTask] = useState("");
 
+  // Templates state
+  const [templates, setTemplates] = useState(() => {
+    try {
+      const saved = localStorage.getItem("pomodoro-templates");
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.warn("Failed to load templates from localStorage:", error);
+      return [];
+    }
+  });
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
   const intervalRef = useRef(null);
 
   // Save tasks to localStorage whenever they change
@@ -265,6 +278,15 @@ const Dashboard = () => {
       console.warn("Failed to save break tasks to localStorage:", error);
     }
   }, [breakTasks]);
+
+  // Save templates to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem("pomodoro-templates", JSON.stringify(templates));
+    } catch (error) {
+      console.warn("Failed to save templates to localStorage:", error);
+    }
+  }, [templates]);
 
   // @dnd-kit sensors
   const sensors = useSensors(
@@ -551,6 +573,100 @@ const Dashboard = () => {
     });
   };
 
+  // Template functions
+  const saveTemplate = (type) => {
+    const tasks = type === "work" ? workTasks : breakTasks;
+
+    if (tasks.length === 0) {
+      alert("Cannot save empty list!");
+      return;
+    }
+
+    const name = prompt(`Enter a name for this ${type} template:`);
+    if (!name || !name.trim()) return;
+
+    const template = {
+      id: `template-${Date.now()}`,
+      name: name.trim(),
+      type,
+      tasks: tasks.map((task) => ({ ...task })), // Deep copy
+      createdAt: new Date().toISOString(),
+    };
+
+    setTemplates((prev) => [...prev, template]);
+  };
+
+  const loadTemplate = (template) => {
+    const confirmLoad = window.confirm(
+      `Replace current ${template.type} list with "${template.name}"?`
+    );
+
+    if (!confirmLoad) return;
+
+    if (template.type === "work") {
+      setWorkTasks(template.tasks.map((task) => ({ ...task })));
+    } else {
+      setBreakTasks(template.tasks.map((task) => ({ ...task })));
+    }
+
+    setSidebarOpen(false);
+  };
+
+  const mergeTemplate = (template) => {
+    const confirmMerge = window.confirm(
+      `Add tasks from "${template.name}" to current ${template.type} list?`
+    );
+
+    if (!confirmMerge) return;
+
+    if (template.type === "work") {
+      setWorkTasks((prev) => {
+        // Create new tasks with unique IDs to avoid conflicts
+        const newTasks = template.tasks.map((task) => ({
+          ...task,
+          id: `${task.id}-merged-${Date.now()}`,
+        }));
+
+        const mergedTasks = [...prev, ...newTasks];
+        // Sort merged tasks: incomplete first, then completed
+        return mergedTasks.sort((a, b) => {
+          if (a.completed === b.completed) return 0;
+          return a.completed ? 1 : -1;
+        });
+      });
+    } else {
+      setBreakTasks((prev) => {
+        // Create new tasks with unique IDs to avoid conflicts
+        const newTasks = template.tasks.map((task) => ({
+          ...task,
+          id: `${task.id}-merged-${Date.now()}`,
+        }));
+
+        const mergedTasks = [...prev, ...newTasks];
+        // Sort merged tasks: incomplete first, then completed
+        return mergedTasks.sort((a, b) => {
+          if (a.completed === b.completed) return 0;
+          return a.completed ? 1 : -1;
+        });
+      });
+    }
+
+    setSidebarOpen(false);
+  };
+
+  const deleteTemplate = (templateId) => {
+    const template = templates.find((t) => t.id === templateId);
+    if (!template) return;
+
+    const confirmDelete = window.confirm(
+      `Delete template "${template.name}"? This cannot be undone.`
+    );
+
+    if (!confirmDelete) return;
+
+    setTemplates((prev) => prev.filter((t) => t.id !== templateId));
+  };
+
   // @dnd-kit drag end handler
   const handleDragEnd = (event) => {
     const { active, over } = event;
@@ -636,216 +752,248 @@ const Dashboard = () => {
       collisionDetection={rectIntersection}
       onDragEnd={handleDragEnd}
     >
-      <div className="dashboard">
-        <DashboardHeader sessions={sessions} />
-        <div className="dashboard-content">
-          <div className={`main-layout ${isActive ? "focus-mode" : ""}`}>
-            {/* Timer Section */}
-            <div className="timer-section">
-              <div
-                className={`timer-card ${isBreak ? "break-mode" : "work-mode"}`}
-              >
-                {/* Settings Menu Button */}
-                <button
-                  className="settings-btn"
-                  onClick={() => setShowSettings(!showSettings)}
-                  title="Timer Settings"
-                  disabled={isActive}
+      <div className="app-layout">
+        <TemplatesSidebar
+          isOpen={sidebarOpen}
+          onToggle={() => setSidebarOpen(!sidebarOpen)}
+          templates={templates}
+          onLoadTemplate={loadTemplate}
+          onMergeTemplate={mergeTemplate}
+          onDeleteTemplate={deleteTemplate}
+        />
+        <div className={`dashboard ${sidebarOpen ? "sidebar-open" : ""}`}>
+          <DashboardHeader sessions={sessions} />
+          <div className="dashboard-content">
+            <div className={`main-layout ${isActive ? "focus-mode" : ""}`}>
+              {/* Timer Section */}
+              <div className="timer-section">
+                <div
+                  className={`timer-card ${
+                    isBreak ? "break-mode" : "work-mode"
+                  }`}
                 >
-                  <Icon
-                    path={mdiDotsVertical}
-                    size={1}
-                    color={
-                      document.documentElement.getAttribute("data-theme") ===
-                      "dark"
-                        ? "#4a90e2"
-                        : undefined
-                    }
+                  {/* Settings Menu Button */}
+                  <button
+                    className="settings-btn"
+                    onClick={() => setShowSettings(!showSettings)}
+                    title="Timer Settings"
+                    disabled={isActive}
+                  >
+                    <Icon
+                      path={mdiDotsVertical}
+                      size={1}
+                      color={
+                        document.documentElement.getAttribute("data-theme") ===
+                        "dark"
+                          ? "#4a90e2"
+                          : undefined
+                      }
+                    />
+                  </button>
+
+                  {/* Settings Panel */}
+                  <SettingsPanel
+                    showSettings={showSettings}
+                    isActive={isActive}
+                    workDuration={workDuration}
+                    setWorkDuration={setWorkDuration}
+                    breakDuration={breakDuration}
+                    setBreakDuration={setBreakDuration}
+                    workSoundType={workSoundType}
+                    setWorkSoundType={setWorkSoundType}
+                    breakSoundType={breakSoundType}
+                    setBreakSoundType={setBreakSoundType}
+                    soundOptions={soundOptions}
+                    playWorkSound={playWorkSound}
+                    playBreakSound={playBreakSound}
+                    setShowSettings={setShowSettings}
                   />
-                </button>
 
-                {/* Settings Panel */}
-                <SettingsPanel
-                  showSettings={showSettings}
-                  isActive={isActive}
-                  workDuration={workDuration}
-                  setWorkDuration={setWorkDuration}
-                  breakDuration={breakDuration}
-                  setBreakDuration={setBreakDuration}
-                  workSoundType={workSoundType}
-                  setWorkSoundType={setWorkSoundType}
-                  breakSoundType={breakSoundType}
-                  setBreakSoundType={setBreakSoundType}
-                  soundOptions={soundOptions}
-                  playWorkSound={playWorkSound}
-                  playBreakSound={playBreakSound}
-                  setShowSettings={setShowSettings}
-                />
+                  <h2>{isBreak ? "Break Time 🎯" : "Focus Time 🍅"}</h2>
+                  <div className="timer-display">{formatTime(timeLeft)}</div>
+                  <div className="timer-controls">
+                    {!isActive ? (
+                      <button
+                        className="btn btn-primary"
+                        onClick={startTimer}
+                        title="Keyboard shortcut: Space"
+                      >
+                        Start <span className="shortcut-hint">[Space]</span>
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-secondary"
+                        onClick={pauseTimer}
+                        title="Keyboard shortcut: Space"
+                      >
+                        Pause <span className="shortcut-hint">[Space]</span>
+                      </button>
+                    )}
+                    <button
+                      className="btn btn-outline"
+                      onClick={resetTimer}
+                      title="Keyboard shortcut: R"
+                    >
+                      Reset <span className="shortcut-hint">[R]</span>
+                    </button>
+                    <button
+                      className="btn btn-accent"
+                      onClick={skipTimer}
+                      title="Keyboard shortcut: S"
+                    >
+                      Skip <span className="shortcut-hint">[S]</span>
+                    </button>
+                  </div>
 
-                <h2>{isBreak ? "Break Time 🎯" : "Focus Time 🍅"}</h2>
-                <div className="timer-display">{formatTime(timeLeft)}</div>
-                <div className="timer-controls">
-                  {!isActive ? (
-                    <button
-                      className="btn btn-primary"
-                      onClick={startTimer}
-                      title="Keyboard shortcut: Space"
-                    >
-                      Start <span className="shortcut-hint">[Space]</span>
+                  {/* Keyboard shortcuts info */}
+                  <div className="shortcuts-info">
+                    <medium className="shortcuts-label">Shortcuts:</medium>
+                    <li className="shortcut-message">
+                      <small>[Space] Start/Pause</small>
+                    </li>
+                    <li className="shortcut-message">
+                      <small>[R] Reset</small>
+                    </li>
+                    <li className="shortcut-message">
+                      <small>[S] Skip</small>
+                    </li>
+                    <li className="shortcut-message">
+                      <small>[Alt+W] Work Input</small>
+                    </li>
+                    <li className="shortcut-message">
+                      <small>[Alt+B] Break Input</small>
+                    </li>
+                  </div>
+                </div>
+              </div>
+
+              {/* Todo Lists Section */}
+              <div className="todo-section">
+                {/* Work Tasks - Show during work time or when timer is inactive */}
+                <div
+                  className={`todo-column ${
+                    isActive && isBreak ? "hidden" : ""
+                  }`}
+                >
+                  <div className="todo-header">
+                    <div className="todo-title">
+                      <h3>🎯 Current Tasks</h3>
+                      <button
+                        className="save-template-btn"
+                        onClick={() => saveTemplate("work")}
+                        title="Save as template"
+                      >
+                        💾
+                      </button>
+                    </div>
+                    <small>Focus on these during work sessions</small>
+                  </div>
+                  <form onSubmit={addWorkTask} className="add-task-form">
+                    <input
+                      ref={workInputRef}
+                      type="text"
+                      placeholder="Add a new task..."
+                      value={newWorkTask}
+                      onChange={(e) => setNewWorkTask(e.target.value)}
+                      className="form-input"
+                    />
+                    <button type="submit" className="btn btn-primary btn-sm">
+                      Add
                     </button>
-                  ) : (
-                    <button
-                      className="btn btn-secondary"
-                      onClick={pauseTimer}
-                      title="Keyboard shortcut: Space"
+                  </form>
+
+                  <DroppableContainer id="work-list" className="task-list">
+                    <SortableContext
+                      items={workTasks.map((task) => task.id)}
+                      strategy={verticalListSortingStrategy}
                     >
-                      Pause <span className="shortcut-hint">[Space]</span>
-                    </button>
-                  )}
-                  <button
-                    className="btn btn-outline"
-                    onClick={resetTimer}
-                    title="Keyboard shortcut: R"
-                  >
-                    Reset <span className="shortcut-hint">[R]</span>
-                  </button>
-                  <button
-                    className="btn btn-accent"
-                    onClick={skipTimer}
-                    title="Keyboard shortcut: S"
-                  >
-                    Skip <span className="shortcut-hint">[S]</span>
-                  </button>
+                      {workTasks.length === 0 && (
+                        <div className="empty-list-message">
+                          No tasks yet. Add one above!
+                        </div>
+                      )}
+                      {workTasks.map((task) => (
+                        <SortableItem
+                          key={task.id}
+                          task={task}
+                          onToggle={toggleWorkTask}
+                          onDelete={deleteWorkTask}
+                          onEdit={editWorkTask}
+                          listType="work"
+                        />
+                      ))}
+                    </SortableContext>
+                  </DroppableContainer>
                 </div>
 
-                {/* Keyboard shortcuts info */}
-                <div className="shortcuts-info">
-                  <medium className="shortcuts-label">Shortcuts:</medium>
-                  <li className="shortcut-message">
-                    <small>[Space] Start/Pause</small>
-                  </li>
-                  <li className="shortcut-message">
-                    <small>[R] Reset</small>
-                  </li>
-                  <li className="shortcut-message">
-                    <small>[S] Skip</small>
-                  </li>
-                  <li className="shortcut-message">
-                    <small>[Alt+W] Work Input</small>
-                  </li>
-                  <li className="shortcut-message">
-                    <small>[Alt+B] Break Input</small>
-                  </li>
+                {/* Break Activities - Show during break time or when timer is inactive */}
+                <div
+                  className={`todo-column ${
+                    isActive && !isBreak ? "hidden" : ""
+                  }`}
+                >
+                  <div className="todo-header">
+                    <div className="todo-title">
+                      <h3>🌟 Break Activities</h3>
+                      <button
+                        className="save-template-btn"
+                        onClick={() => saveTemplate("break")}
+                        title="Save as template"
+                      >
+                        💾
+                      </button>
+                    </div>
+                    <small>Recharge with these during breaks</small>
+                  </div>
+                  <form onSubmit={addBreakTask} className="add-task-form">
+                    <input
+                      ref={breakInputRef}
+                      type="text"
+                      placeholder="Add a break activity..."
+                      value={newBreakTask}
+                      onChange={(e) => setNewBreakTask(e.target.value)}
+                      className="form-input"
+                    />
+                    <button type="submit" className="btn btn-secondary btn-sm">
+                      Add
+                    </button>
+                  </form>
+
+                  <DroppableContainer id="break-list" className="task-list">
+                    <SortableContext
+                      items={breakTasks.map((task) => task.id)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      {breakTasks.length === 0 && (
+                        <div className="empty-list-message">
+                          No activities yet. Add one above!
+                        </div>
+                      )}
+                      {breakTasks.map((task) => (
+                        <SortableItem
+                          key={task.id}
+                          task={task}
+                          onToggle={toggleBreakTask}
+                          onDelete={deleteBreakTask}
+                          onEdit={editBreakTask}
+                          listType="break"
+                        />
+                      ))}
+                    </SortableContext>
+                  </DroppableContainer>
                 </div>
               </div>
             </div>
 
-            {/* Todo Lists Section */}
-            <div className="todo-section">
-              {/* Work Tasks - Show during work time or when timer is inactive */}
-              <div
-                className={`todo-column ${isActive && isBreak ? "hidden" : ""}`}
-              >
-                <div className="todo-header">
-                  <h3>🎯 Current Tasks</h3>
-                  <small>Focus on these during work sessions</small>
-                </div>
-                <form onSubmit={addWorkTask} className="add-task-form">
-                  <input
-                    ref={workInputRef}
-                    type="text"
-                    placeholder="Add a new task..."
-                    value={newWorkTask}
-                    onChange={(e) => setNewWorkTask(e.target.value)}
-                    className="form-input"
-                  />
-                  <button type="submit" className="btn btn-primary btn-sm">
-                    Add
-                  </button>
-                </form>
-
-                <DroppableContainer id="work-list" className="task-list">
-                  <SortableContext
-                    items={workTasks.map((task) => task.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {workTasks.length === 0 && (
-                      <div className="empty-list-message">
-                        No tasks yet. Add one above!
-                      </div>
-                    )}
-                    {workTasks.map((task) => (
-                      <SortableItem
-                        key={task.id}
-                        task={task}
-                        onToggle={toggleWorkTask}
-                        onDelete={deleteWorkTask}
-                        onEdit={editWorkTask}
-                        listType="work"
-                      />
-                    ))}
-                  </SortableContext>
-                </DroppableContainer>
-              </div>
-
-              {/* Break Activities - Show during break time or when timer is inactive */}
-              <div
-                className={`todo-column ${
-                  isActive && !isBreak ? "hidden" : ""
-                }`}
-              >
-                <div className="todo-header">
-                  <h3>🌟 Break Activities</h3>
-                  <small>Recharge with these during breaks</small>
-                </div>
-                <form onSubmit={addBreakTask} className="add-task-form">
-                  <input
-                    ref={breakInputRef}
-                    type="text"
-                    placeholder="Add a break activity..."
-                    value={newBreakTask}
-                    onChange={(e) => setNewBreakTask(e.target.value)}
-                    className="form-input"
-                  />
-                  <button type="submit" className="btn btn-secondary btn-sm">
-                    Add
-                  </button>
-                </form>
-
-                <DroppableContainer id="break-list" className="task-list">
-                  <SortableContext
-                    items={breakTasks.map((task) => task.id)}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {breakTasks.length === 0 && (
-                      <div className="empty-list-message">
-                        No activities yet. Add one above!
-                      </div>
-                    )}
-                    {breakTasks.map((task) => (
-                      <SortableItem
-                        key={task.id}
-                        task={task}
-                        onToggle={toggleBreakTask}
-                        onDelete={deleteBreakTask}
-                        onEdit={editBreakTask}
-                        listType="break"
-                      />
-                    ))}
-                  </SortableContext>
-                </DroppableContainer>
-              </div>
+            <div className="drag-instructions">
+              <small>
+                {isActive && !isBreak
+                  ? "🎯 Focus Time: Complete your current tasks!"
+                  : isActive && isBreak
+                  ? "🌟 Break Time: Enjoy your break activities!"
+                  : "💡 Tip: Drag tasks to reorder them or move between lists"}
+              </small>
             </div>
-          </div>
-
-          <div className="drag-instructions">
-            <small>
-              {isActive && !isBreak
-                ? "🎯 Focus Time: Complete your current tasks!"
-                : isActive && isBreak
-                ? "🌟 Break Time: Enjoy your break activities!"
-                : "💡 Tip: Drag tasks to reorder them or move between lists"}
-            </small>
           </div>
         </div>
       </div>
