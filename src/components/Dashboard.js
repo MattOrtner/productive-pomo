@@ -883,7 +883,7 @@ const Dashboard = () => {
                         onClick={() => saveTemplate("work")}
                         title="Save as template"
                       >
-                        💾
+                        Save
                       </button>
                     </div>
                     <small>Focus on these during work sessions</small>
@@ -940,7 +940,7 @@ const Dashboard = () => {
                         onClick={() => saveTemplate("break")}
                         title="Save as template"
                       >
-                        💾
+                        Save
                       </button>
                     </div>
                     <small>Recharge with these during breaks</small>
