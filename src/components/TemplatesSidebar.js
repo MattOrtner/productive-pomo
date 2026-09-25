@@ -1,6 +1,25 @@
 import React from "react";
 import "./styles/TemplatesSidebar.css";
 
+// White fill with black stroke keeps the icon visible in both light and dark themes
+const PlusIcon = () => (
+  <svg
+    className="merge-icon"
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
+    <polygon
+      points="9,1 15,1 15,9 23,9 23,15 15,15 15,23 9,23 9,15 1,15 1,9 9,9"
+      fill="#fff"
+      stroke="#000"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 const TemplatesSidebar = ({
   isOpen,
   onToggle,
@@ -69,7 +88,7 @@ const TemplatesSidebar = ({
                           onClick={() => onMergeTemplate(template)}
                           title="Merge with current list"
                         >
-                          🔗
+                          <PlusIcon />
                         </button>
                         <button
                           className="delete-btn"
@@ -119,7 +138,7 @@ const TemplatesSidebar = ({
                           onClick={() => onMergeTemplate(template)}
                           title="Merge with current list"
                         >
-                          🔗
+                          <PlusIcon />
                         </button>
                         <button
                           className="delete-btn"
