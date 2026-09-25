@@ -8,7 +8,9 @@
   min-height: 100vh;
   background: var(--light-gray);
   color: var(--dark-gray);
-  transition: background 0.3s, color 0.3s;
+  transition:
+    background 0.3s,
+    color 0.3s;
 }
 
 .dashboard-header {
@@ -19,7 +21,15 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  transition: background 0.3s, color 0.3s;
+  transition:
+    background 0.3s,
+    color 0.3s;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .task-item[draggable="true"]:hover {
@@ -34,7 +44,10 @@
   box-shadow: 0 8px 24px var(--shadow);
   width: 100%;
   max-width: 320px;
-  transition: background 0.3s, color 0.3s, border-color 0.3s;
+  transition:
+    background 0.3s,
+    color 0.3s,
+    border-color 0.3s;
   height: fit-content;
   overflow: hidden; /* Ensure clean borders and prevent content overflow */
   box-sizing: border-box; /* Include padding and border in width calculation */
@@ -51,7 +64,10 @@
   align-items: center;
   justify-content: space-between;
   box-shadow: 0 2px 8px var(--shadow);
-  transition: background 0.3s, color 0.3s, border-color 0.3s;
+  transition:
+    background 0.3s,
+    color 0.3s,
+    border-color 0.3s;
 }
 
 /* Animation for timer completion */
@@ -114,7 +130,9 @@
   padding: 4px 2px;
   min-height: 80px;
   position: relative;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .task-list.drag-over {
@@ -177,7 +195,10 @@
   box-shadow: 0 8px 24px var(--shadow);
   width: 100%;
   max-width: 320px;
-  transition: background 0.3s, color 0.3s, border-color 0.3s;
+  transition:
+    background 0.3s,
+    color 0.3s,
+    border-color 0.3s;
   height: fit-content;
   overflow: hidden; /* Ensure clean borders and prevent content overflow */
   box-sizing: border-box; /* Include padding and border in width calculation */
@@ -557,7 +578,9 @@
   margin-bottom: 4px;
   background: var(--light-gray);
   border-radius: 8px;
-  transition: all 0.3s ease, transform 0.2s ease;
+  transition:
+    all 0.3s ease,
+    transform 0.2s ease;
   min-width: 0; /* Allows flex container to shrink */
   width: 100%; /* Ensures full width usage */
 }

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +11,8 @@ const Register = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -25,8 +28,8 @@ const Register = () => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
+    setSuccessMessage("");
 
-    // Validation
     if (
       !formData.name ||
       !formData.email ||
@@ -51,16 +54,14 @@ const Register = () => {
     }
 
     try {
-      // TODO: Replace with actual API call
-      console.log("Register attempt:", formData);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // For now, just navigate to dashboard
-      navigate("/dashboard");
+      await register(formData.name, formData.email, formData.password);
+      // Supabase sends a confirmation email by default.
+      // If email confirmation is disabled in your project, navigate directly.
+      setSuccessMessage(
+        "Account created! Check your email to confirm your address, then sign in.",
+      );
     } catch (err) {
-      setError("Registration failed. Please try again.");
+      setError(err.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -86,6 +87,21 @@ const Register = () => {
             }}
           >
             {error}
+          </div>
+        )}
+
+        {successMessage && (
+          <div
+            style={{
+              background: "#D1FAE5",
+              color: "#065F46",
+              padding: "12px 16px",
+              borderRadius: "8px",
+              marginBottom: "20px",
+              fontSize: "14px",
+            }}
+          >
+            {successMessage}
           </div>
         )}
 

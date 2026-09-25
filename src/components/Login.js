@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -8,7 +9,12 @@ const Login = () => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Redirect back to wherever the user was trying to go, defaulting to /dashboard
+  const from = location.state?.from?.pathname || "/dashboard";
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -16,7 +22,6 @@ const Login = () => {
       ...prev,
       [name]: value,
     }));
-    // Clear error when user starts typing
     if (error) setError("");
   };
 
@@ -25,7 +30,6 @@ const Login = () => {
     setIsLoading(true);
     setError("");
 
-    // Basic validation
     if (!formData.email || !formData.password) {
       setError("Please fill in all fields");
       setIsLoading(false);
@@ -33,17 +37,10 @@ const Login = () => {
     }
 
     try {
-      // TODO: Replace with actual API call
-      console.log("Login attempt:", formData);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // For now, just navigate to dashboard
-      // In a real app, you'd validate credentials and set auth state
-      navigate("/dashboard");
+      await login(formData.email, formData.password);
+      navigate(from, { replace: true });
     } catch (err) {
-      setError("Login failed. Please try again.");
+      setError(err.message || "Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }

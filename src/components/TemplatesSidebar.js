@@ -1,5 +1,5 @@
 import React from "react";
-import "./TemplatesSidebar.css";
+import "./styles/TemplatesSidebar.css";
 
 const TemplatesSidebar = ({
   isOpen,
@@ -19,6 +19,15 @@ const TemplatesSidebar = ({
       .slice(0, 2)
       .map((t) => t.text)
       .join(", ")} +${tasks.length - 2} more`;
+  };
+
+  const formatDate = (isoString) => {
+    if (!isoString) return "";
+    return new Date(isoString).toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
   return (
@@ -77,6 +86,8 @@ const TemplatesSidebar = ({
                     <small className="task-count">
                       {template.tasks.length} task
                       {template.tasks.length !== 1 ? "s" : ""}
+                      {template.createdAt &&
+                        ` \u2022 Saved ${formatDate(template.createdAt)}`}
                     </small>
                   </div>
                 ))}
@@ -125,6 +136,8 @@ const TemplatesSidebar = ({
                     <small className="task-count">
                       {template.tasks.length} task
                       {template.tasks.length !== 1 ? "s" : ""}
+                      {template.createdAt &&
+                        ` \u2022 Saved ${formatDate(template.createdAt)}`}
                     </small>
                   </div>
                 ))}

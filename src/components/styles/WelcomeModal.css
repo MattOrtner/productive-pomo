@@ -1,0 +1,136 @@
+.welcome-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: wFadeIn 0.3s ease;
+  padding: 16px;
+}
+
+@keyframes wFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.welcome-modal {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 40px 36px 32px;
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+  animation: wSlideUp 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+}
+
+@keyframes wSlideUp {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.welcome-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+.welcome-modal h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--dark-gray);
+}
+
+.welcome-subtitle {
+  color: var(--medium-gray);
+  margin: 0 0 28px;
+  font-size: 0.95rem;
+}
+
+.welcome-tiers {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 28px;
+  text-align: left;
+}
+
+.tier {
+  border-radius: 12px;
+  padding: 16px 18px;
+}
+
+.tier h4 {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 10px;
+}
+
+.tier ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.875rem;
+}
+
+.tier-free {
+  background: var(--light-gray);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.tier-free h4 {
+  color: var(--medium-gray);
+}
+
+.tier-account {
+  background: linear-gradient(
+    135deg,
+    var(--deep-maroon) 0%,
+    var(--accent-orange) 100%
+  );
+  color: #fff;
+}
+
+.tier-account h4 {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.welcome-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.welcome-actions .btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 480px) {
+  .welcome-tiers {
+    grid-template-columns: 1fr;
+  }
+
+  .welcome-modal {
+    padding: 28px 20px 24px;
+  }
+}

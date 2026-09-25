@@ -1,33 +1,30 @@
-// import { useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import Dashboard from "./components/Dashboard";
-// import AuthModal from "./components/AuthModal";
+import Login from "./components/Login";
+import Register from "./components/Register";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import "./App.css";
-
-function AppContent() {
-  // const [showAuthModal, setShowAuthModal] = useState(true);
-
-  // const handleCloseModal = () => {
-  // setShowAuthModal(false);
-  // };
-
-  return (
-    <div className="App">
-      <Dashboard />
-      {/* {showAuthModal && <AuthModal onClose={handleCloseModal} />} */}
-    </div>
-  );
-}
 
 function App() {
   return (
     <ThemeProvider>
-      <Router>
-        <Routes>
-          <Route path="*" element={<AppContent />} />
-        </Routes>
-      </Router>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
     </ThemeProvider>
   );
 }
