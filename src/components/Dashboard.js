@@ -547,12 +547,44 @@ const Dashboard = () => {
       }
     }
 
-    const name = prompt(`Enter a name for this ${type} template:`);
+    let name = prompt(`Enter a name for this ${type} template:`);
     if (!name || !name.trim()) return;
+    name = name.trim();
+
+    // Check for an existing template of the same type with the same name
+    let existing = templates.find(
+      (t) => t.type === type && t.name.toLowerCase() === name.toLowerCase(),
+    );
+
+    while (existing) {
+      const overwrite = window.confirm(
+        `A ${type} template named "${existing.name}" already exists. Click OK to overwrite it, or Cancel to choose a different name.`,
+      );
+
+      if (overwrite) {
+        const updatedTemplate = {
+          ...existing,
+          tasks: tasks.map((task) => ({ ...task })), // Deep copy
+          createdAt: new Date().toISOString(),
+        };
+        setTemplates((prev) =>
+          prev.map((t) => (t.id === existing.id ? updatedTemplate : t)),
+        );
+        return;
+      }
+
+      name = prompt(`Enter a new name for this ${type} template:`);
+      if (!name || !name.trim()) return;
+      name = name.trim();
+
+      existing = templates.find(
+        (t) => t.type === type && t.name.toLowerCase() === name.toLowerCase(),
+      );
+    }
 
     const template = {
       id: `template-${Date.now()}`,
-      name: name.trim(),
+      name,
       type,
       tasks: tasks.map((task) => ({ ...task })), // Deep copy
       createdAt: new Date().toISOString(),
