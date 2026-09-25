@@ -546,15 +546,19 @@ const Dashboard = () => {
         return;
       }
     }
-
     let name = prompt(`Enter a name for this ${type} template:`);
     if (!name || !name.trim()) return;
     name = name.trim();
 
-    // Check for an existing template of the same type with the same name
-    let existing = templates.find(
-      (t) => t.type === type && t.name.toLowerCase() === name.toLowerCase(),
-    );
+    // Helper function to find an existing template
+    const findExistingTemplate = (templateName) =>
+      templates.find(
+        (t) =>
+          t.type === type &&
+          t.name.toLowerCase() === templateName.toLowerCase(),
+      );
+
+    let existing = findExistingTemplate(name);
 
     while (existing) {
       const overwrite = window.confirm(
@@ -564,11 +568,12 @@ const Dashboard = () => {
       if (overwrite) {
         const updatedTemplate = {
           ...existing,
-          tasks: tasks.map((task) => ({ ...task })), // Deep copy
+          tasks: tasks.map((task) => ({ ...task })),
           createdAt: new Date().toISOString(),
         };
+        const existingId = existing.id;
         setTemplates((prev) =>
-          prev.map((t) => (t.id === existing.id ? updatedTemplate : t)),
+          prev.map((t) => (t.id === existingId ? updatedTemplate : t)),
         );
         return;
       }
@@ -577,19 +582,16 @@ const Dashboard = () => {
       if (!name || !name.trim()) return;
       name = name.trim();
 
-      existing = templates.find(
-        (t) => t.type === type && t.name.toLowerCase() === name.toLowerCase(),
-      );
+      existing = findExistingTemplate(name);
     }
 
     const template = {
       id: `template-${Date.now()}`,
       name,
       type,
-      tasks: tasks.map((task) => ({ ...task })), // Deep copy
+      tasks: tasks.map((task) => ({ ...task })),
       createdAt: new Date().toISOString(),
     };
-
     setTemplates((prev) => [...prev, template]);
   };
 
