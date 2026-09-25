@@ -21,9 +21,13 @@ import { CSS } from "@dnd-kit/utilities";
 import DashboardHeader from "./DashboardHeader";
 import SettingsPanel from "./SettingsPanel";
 import TemplatesSidebar from "./TemplatesSidebar";
+import WelcomeModal from "./WelcomeModal";
+import AuthPromptModal from "./AuthPromptModal";
 import useSounds from "../hooks/useSounds";
-import "./Dashboard.css";
-import "./KeyboardShortcuts.css";
+import { useAuth } from "../contexts/AuthContext";
+import "./styles/Dashboard.css";
+
+const FREE_TEMPLATE_LIMIT = 2;
 
 // SortableItem component for individual tasks
 const SortableItem = ({ task, onToggle, onDelete, onEdit, listType }) => {
@@ -184,6 +188,12 @@ const DroppableContainer = ({ id, children, className }) => {
 };
 
 const Dashboard = () => {
+  const { user } = useAuth();
+
+  // Template prompt state
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+  const [authPromptListType, setAuthPromptListType] = useState(null);
+
   // Timer state
   const [workDuration, setWorkDuration] = useState(25); // Work duration in minutes
   const [breakDuration, setBreakDuration] = useState(5); // Break duration in minutes
@@ -199,10 +209,6 @@ const Dashboard = () => {
   const initialTimeRef = useRef(null);
   const pausedTimeRef = useRef(null);
   const lastTimeLeftRef = useRef(timeLeft);
-
-  // Input refs for keyboard shortcuts
-  const workInputRef = useRef(null);
-  const breakInputRef = useRef(null);
 
   // Sound management using custom hook
   const {
@@ -235,14 +241,14 @@ const Dashboard = () => {
         completed: false,
       },
       { id: "work-2", text: "Review pull requests", completed: false },
-    ])
+    ]),
   );
   const [breakTasks, setBreakTasks] = useState(() =>
     loadTasksFromStorage("pomodoro-break-tasks", [
       { id: "break-1", text: "Do 10 push-ups", completed: false },
       { id: "break-2", text: "Drink water", completed: false },
       { id: "break-3", text: "Take deep breaths", completed: false },
-    ])
+    ]),
   );
 
   const [newWorkTask, setNewWorkTask] = useState("");
@@ -261,6 +267,16 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const intervalRef = useRef(null);
+
+  // Refs to give drag handlers access to fresh task state without stale closures
+  const workTasksRef = useRef(workTasks);
+  const breakTasksRef = useRef(breakTasks);
+  useEffect(() => {
+    workTasksRef.current = workTasks;
+  }, [workTasks]);
+  useEffect(() => {
+    breakTasksRef.current = breakTasks;
+  }, [breakTasks]);
 
   // Save tasks to localStorage whenever they change
   useEffect(() => {
@@ -293,7 +309,7 @@ const Dashboard = () => {
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   // Timer effects with timestamp-based accuracy to prevent tab throttling
@@ -400,67 +416,6 @@ const Dashboard = () => {
     }
   }, [isBreak, workDuration, breakDuration]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (event) => {
-      const isInInputField =
-        event.target.tagName === "INPUT" || event.target.tagName === "TEXTAREA";
-
-      // Block timer shortcuts when typing in input fields
-      if (isInInputField && !event.altKey) {
-        return;
-      }
-
-      switch (event.code) {
-        case "Space":
-          if (!event.altKey) {
-            event.preventDefault();
-            if (isActive) {
-              pauseTimer();
-            } else {
-              startTimer();
-            }
-          }
-          break;
-        case "KeyR":
-          if (!event.altKey) {
-            event.preventDefault();
-            resetTimer();
-          }
-          break;
-        case "KeyS":
-          if (!event.altKey) {
-            event.preventDefault();
-            skipTimer();
-          }
-          break;
-        case "KeyW":
-          if (event.altKey) {
-            event.preventDefault();
-            if (workInputRef.current) {
-              workInputRef.current.focus();
-            }
-          }
-          break;
-        case "KeyB":
-          if (event.altKey) {
-            event.preventDefault();
-            if (breakInputRef.current) {
-              breakInputRef.current.focus();
-            }
-          }
-          break;
-        default:
-          break;
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyPress);
-    return () => {
-      document.removeEventListener("keydown", handleKeyPress);
-    };
-  }, [isActive, startTimer, pauseTimer, resetTimer, skipTimer]);
-
   // Format time display
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -514,7 +469,7 @@ const Dashboard = () => {
   const toggleWorkTask = (id) => {
     setWorkTasks((prevTasks) => {
       const updatedTasks = prevTasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
+        task.id === id ? { ...task, completed: !task.completed } : task,
       );
 
       // Sort tasks: incomplete tasks first, then completed tasks at the bottom
@@ -528,7 +483,7 @@ const Dashboard = () => {
   const toggleBreakTask = (id) => {
     setBreakTasks((prevTasks) => {
       const updatedTasks = prevTasks.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task
+        task.id === id ? { ...task, completed: !task.completed } : task,
       );
 
       // Sort tasks: incomplete tasks first, then completed tasks at the bottom
@@ -550,7 +505,7 @@ const Dashboard = () => {
   const editWorkTask = (id, newText) => {
     setWorkTasks((prevTasks) => {
       const updatedTasks = prevTasks.map((task) =>
-        task.id === id ? { ...task, text: newText } : task
+        task.id === id ? { ...task, text: newText } : task,
       );
       // Maintain sorting: incomplete tasks first, then completed tasks at the bottom
       return updatedTasks.sort((a, b) => {
@@ -563,7 +518,7 @@ const Dashboard = () => {
   const editBreakTask = (id, newText) => {
     setBreakTasks((prevTasks) => {
       const updatedTasks = prevTasks.map((task) =>
-        task.id === id ? { ...task, text: newText } : task
+        task.id === id ? { ...task, text: newText } : task,
       );
       // Maintain sorting: incomplete tasks first, then completed tasks at the bottom
       return updatedTasks.sort((a, b) => {
@@ -582,6 +537,16 @@ const Dashboard = () => {
       return;
     }
 
+    // Enforce free-tier limit for guests
+    if (!user) {
+      const countForType = templates.filter((t) => t.type === type).length;
+      if (countForType >= FREE_TEMPLATE_LIMIT) {
+        setAuthPromptListType(type);
+        setShowAuthPrompt(true);
+        return;
+      }
+    }
+
     const name = prompt(`Enter a name for this ${type} template:`);
     if (!name || !name.trim()) return;
 
@@ -598,7 +563,7 @@ const Dashboard = () => {
 
   const loadTemplate = (template) => {
     const confirmLoad = window.confirm(
-      `Replace current ${template.type} list with "${template.name}"?`
+      `Replace current ${template.type} list with "${template.name}"?`,
     );
 
     if (!confirmLoad) return;
@@ -614,7 +579,7 @@ const Dashboard = () => {
 
   const mergeTemplate = (template) => {
     const confirmMerge = window.confirm(
-      `Add tasks from "${template.name}" to current ${template.type} list?`
+      `Add tasks from "${template.name}" to current ${template.type} list?`,
     );
 
     if (!confirmMerge) return;
@@ -659,7 +624,7 @@ const Dashboard = () => {
     if (!template) return;
 
     const confirmDelete = window.confirm(
-      `Delete template "${template.name}"? This cannot be undone.`
+      `Delete template "${template.name}"? This cannot be undone.`,
     );
 
     if (!confirmDelete) return;
@@ -667,337 +632,319 @@ const Dashboard = () => {
     setTemplates((prev) => prev.filter((t) => t.id !== templateId));
   };
 
-  // @dnd-kit drag end handler
-  const handleDragEnd = (event) => {
+  // @dnd-kit drag over handler — moves items between lists in real-time
+  const handleDragOver = (event) => {
     const { active, over } = event;
-
-    if (!over) return;
+    if (!over || active.id === over.id) return;
 
     const activeId = active.id;
     const overId = over.id;
 
-    // Find the active task in either list
-    const activeTask =
-      workTasks.find((task) => task.id === activeId) ||
-      breakTasks.find((task) => task.id === activeId);
+    const currentWork = workTasksRef.current;
+    const currentBreak = breakTasksRef.current;
 
-    if (!activeTask) return;
+    const activeInWork = currentWork.some((t) => t.id === activeId);
+    const activeInBreak = currentBreak.some((t) => t.id === activeId);
+    const overInWork =
+      overId === "work-list" || currentWork.some((t) => t.id === overId);
+    const overInBreak =
+      overId === "break-list" || currentBreak.some((t) => t.id === overId);
 
-    // Determine which list the active task is currently in
-    const activeInWork = workTasks.some((task) => task.id === activeId);
-    const activeInBreak = breakTasks.some((task) => task.id === activeId);
+    if (activeInWork && overInBreak) {
+      // Moving work -> break
+      const activeTask = currentWork.find((t) => t.id === activeId);
+      if (!activeTask) return;
+      const overIndex = currentBreak.findIndex((t) => t.id === overId);
+      const insertIndex = overIndex === -1 ? currentBreak.length : overIndex;
+      const newWork = currentWork.filter((t) => t.id !== activeId);
+      const newBreak = [...currentBreak];
+      newBreak.splice(insertIndex, 0, activeTask);
+      workTasksRef.current = newWork;
+      breakTasksRef.current = newBreak;
+      setWorkTasks(newWork);
+      setBreakTasks(newBreak);
+    } else if (activeInBreak && overInWork) {
+      // Moving break -> work
+      const activeTask = currentBreak.find((t) => t.id === activeId);
+      if (!activeTask) return;
+      const overIndex = currentWork.findIndex((t) => t.id === overId);
+      const insertIndex = overIndex === -1 ? currentWork.length : overIndex;
+      const newBreak = currentBreak.filter((t) => t.id !== activeId);
+      const newWork = [...currentWork];
+      newWork.splice(insertIndex, 0, activeTask);
+      workTasksRef.current = newWork;
+      breakTasksRef.current = newBreak;
+      setWorkTasks(newWork);
+      setBreakTasks(newBreak);
+    }
+  };
 
-    // Determine which list we're dropping into
-    const droppingIntoWork =
-      overId === "work-list" || workTasks.some((task) => task.id === overId);
-    const droppingIntoBreak =
-      overId === "break-list" || breakTasks.some((task) => task.id === overId);
+  // @dnd-kit drag end handler — finalises same-list reordering
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
 
-    if (activeInWork && droppingIntoWork) {
-      // Reordering within work list
-      const oldIndex = workTasks.findIndex((task) => task.id === activeId);
-      const newIndex =
-        overId === "work-list"
-          ? workTasks.length - 1
-          : workTasks.findIndex((task) => task.id === overId);
+    const activeId = active.id;
+    const overId = over.id;
+    const currentWork = workTasksRef.current;
+    const currentBreak = breakTasksRef.current;
 
-      if (oldIndex !== newIndex) {
-        setWorkTasks(arrayMove(workTasks, oldIndex, newIndex));
+    const activeInWork = currentWork.some((t) => t.id === activeId);
+    const activeInBreak = currentBreak.some((t) => t.id === activeId);
+
+    if (activeInWork) {
+      const oldIndex = currentWork.findIndex((t) => t.id === activeId);
+      const newIndex = currentWork.findIndex((t) => t.id === overId);
+      if (newIndex !== -1 && oldIndex !== newIndex) {
+        const newWork = arrayMove(currentWork, oldIndex, newIndex);
+        workTasksRef.current = newWork;
+        setWorkTasks(newWork);
       }
-    } else if (activeInBreak && droppingIntoBreak) {
-      // Reordering within break list
-      const oldIndex = breakTasks.findIndex((task) => task.id === activeId);
-      const newIndex =
-        overId === "break-list"
-          ? breakTasks.length - 1
-          : breakTasks.findIndex((task) => task.id === overId);
-
-      if (oldIndex !== newIndex) {
-        setBreakTasks(arrayMove(breakTasks, oldIndex, newIndex));
-      }
-    } else if (activeInWork && droppingIntoBreak) {
-      // Move from work to break
-      setWorkTasks((prev) => prev.filter((task) => task.id !== activeId));
-
-      if (overId === "break-list" || breakTasks.length === 0) {
-        setBreakTasks((prev) => [...prev, activeTask]);
-      } else {
-        const insertIndex = breakTasks.findIndex((task) => task.id === overId);
-        setBreakTasks((prev) => {
-          const newTasks = [...prev];
-          newTasks.splice(insertIndex, 0, activeTask);
-          return newTasks;
-        });
-      }
-    } else if (activeInBreak && droppingIntoWork) {
-      // Move from break to work
-      setBreakTasks((prev) => prev.filter((task) => task.id !== activeId));
-
-      if (overId === "work-list" || workTasks.length === 0) {
-        setWorkTasks((prev) => [...prev, activeTask]);
-      } else {
-        const insertIndex = workTasks.findIndex((task) => task.id === overId);
-        setWorkTasks((prev) => {
-          const newTasks = [...prev];
-          newTasks.splice(insertIndex, 0, activeTask);
-          return newTasks;
-        });
+    } else if (activeInBreak) {
+      const oldIndex = currentBreak.findIndex((t) => t.id === activeId);
+      const newIndex = currentBreak.findIndex((t) => t.id === overId);
+      if (newIndex !== -1 && oldIndex !== newIndex) {
+        const newBreak = arrayMove(currentBreak, oldIndex, newIndex);
+        breakTasksRef.current = newBreak;
+        setBreakTasks(newBreak);
       }
     }
   };
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={rectIntersection}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="app-layout">
-        <TemplatesSidebar
-          isOpen={sidebarOpen}
-          onToggle={() => setSidebarOpen(!sidebarOpen)}
-          templates={templates}
-          onLoadTemplate={loadTemplate}
-          onMergeTemplate={mergeTemplate}
-          onDeleteTemplate={deleteTemplate}
-        />
-        <div className={`dashboard ${sidebarOpen ? "sidebar-open" : ""}`}>
-          <DashboardHeader sessions={sessions} />
-          <div className="dashboard-content">
-            <div className={`main-layout ${isActive ? "focus-mode" : ""}`}>
-              {/* Timer Section */}
-              <div className="timer-section">
-                <div
-                  className={`timer-card ${
-                    isBreak ? "break-mode" : "work-mode"
-                  }`}
-                >
-                  {/* Settings Menu Button */}
-                  <button
-                    className="settings-btn"
-                    onClick={() => setShowSettings(!showSettings)}
-                    title="Timer Settings"
-                    disabled={isActive}
+    <>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={rectIntersection}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="app-layout">
+          <TemplatesSidebar
+            isOpen={sidebarOpen}
+            onToggle={() => setSidebarOpen(!sidebarOpen)}
+            templates={templates}
+            onLoadTemplate={loadTemplate}
+            onMergeTemplate={mergeTemplate}
+            onDeleteTemplate={deleteTemplate}
+          />
+          <div className={`dashboard ${sidebarOpen ? "sidebar-open" : ""}`}>
+            <DashboardHeader sessions={sessions} />
+            <div className="dashboard-content">
+              <div className={`main-layout ${isActive ? "focus-mode" : ""}`}>
+                {/* Timer Section */}
+                <div className="timer-section">
+                  <div
+                    className={`timer-card ${
+                      isBreak ? "break-mode" : "work-mode"
+                    }`}
                   >
-                    <Icon
-                      path={mdiDotsVertical}
-                      size={1}
-                      color={
-                        document.documentElement.getAttribute("data-theme") ===
-                        "dark"
-                          ? "#4a90e2"
-                          : undefined
-                      }
+                    {/* Settings Menu Button */}
+                    <button
+                      className="settings-btn"
+                      onClick={() => setShowSettings(!showSettings)}
+                      title="Timer Settings"
+                      disabled={isActive}
+                    >
+                      <Icon
+                        path={mdiDotsVertical}
+                        size={1}
+                        color={
+                          document.documentElement.getAttribute(
+                            "data-theme",
+                          ) === "dark"
+                            ? "#4a90e2"
+                            : undefined
+                        }
+                      />
+                    </button>
+
+                    {/* Settings Panel */}
+                    <SettingsPanel
+                      showSettings={showSettings}
+                      isActive={isActive}
+                      workDuration={workDuration}
+                      setWorkDuration={setWorkDuration}
+                      breakDuration={breakDuration}
+                      setBreakDuration={setBreakDuration}
+                      workSoundType={workSoundType}
+                      setWorkSoundType={setWorkSoundType}
+                      breakSoundType={breakSoundType}
+                      setBreakSoundType={setBreakSoundType}
+                      soundOptions={soundOptions}
+                      playWorkSound={playWorkSound}
+                      playBreakSound={playBreakSound}
+                      setShowSettings={setShowSettings}
                     />
-                  </button>
 
-                  {/* Settings Panel */}
-                  <SettingsPanel
-                    showSettings={showSettings}
-                    isActive={isActive}
-                    workDuration={workDuration}
-                    setWorkDuration={setWorkDuration}
-                    breakDuration={breakDuration}
-                    setBreakDuration={setBreakDuration}
-                    workSoundType={workSoundType}
-                    setWorkSoundType={setWorkSoundType}
-                    breakSoundType={breakSoundType}
-                    setBreakSoundType={setBreakSoundType}
-                    soundOptions={soundOptions}
-                    playWorkSound={playWorkSound}
-                    playBreakSound={playBreakSound}
-                    setShowSettings={setShowSettings}
-                  />
+                    <h2>{isBreak ? "Break Time 🎯" : "Focus Time 🍅"}</h2>
+                    <div className="timer-display">{formatTime(timeLeft)}</div>
+                    <div className="timer-controls">
+                      {!isActive ? (
+                        <button
+                          className="btn btn-primary"
+                          onClick={startTimer}
+                        >
+                          Start
+                        </button>
+                      ) : (
+                        <button
+                          className="btn btn-secondary"
+                          onClick={pauseTimer}
+                        >
+                          Pause
+                        </button>
+                      )}
+                      <button className="btn btn-outline" onClick={resetTimer}>
+                        Reset
+                      </button>
+                      <button className="btn btn-accent" onClick={skipTimer}>
+                        Skip
+                      </button>
+                    </div>
+                  </div>
+                </div>
 
-                  <h2>{isBreak ? "Break Time 🎯" : "Focus Time 🍅"}</h2>
-                  <div className="timer-display">{formatTime(timeLeft)}</div>
-                  <div className="timer-controls">
-                    {!isActive ? (
-                      <button
-                        className="btn btn-primary"
-                        onClick={startTimer}
-                        title="Keyboard shortcut: Space"
-                      >
-                        Start <span className="shortcut-hint">[Space]</span>
+                {/* Todo Lists Section */}
+                <div className="todo-section">
+                  {/* Work Tasks - Show during work time or when timer is inactive */}
+                  <div
+                    className={`todo-column ${
+                      isActive && isBreak ? "hidden" : ""
+                    }`}
+                  >
+                    <div className="todo-header">
+                      <div className="todo-title">
+                        <h3>🎯 Current Tasks</h3>
+                        <button
+                          className="save-template-btn"
+                          onClick={() => saveTemplate("work")}
+                          title="Save as template"
+                        >
+                          Save
+                        </button>
+                      </div>
+                      <small>Focus on these during work sessions</small>
+                    </div>
+                    <form onSubmit={addWorkTask} className="add-task-form">
+                      <input
+                        type="text"
+                        placeholder="Add a new task..."
+                        value={newWorkTask}
+                        onChange={(e) => setNewWorkTask(e.target.value)}
+                        className="form-input"
+                      />
+                      <button type="submit" className="btn btn-primary btn-sm">
+                        Add
                       </button>
-                    ) : (
-                      <button
-                        className="btn btn-secondary"
-                        onClick={pauseTimer}
-                        title="Keyboard shortcut: Space"
+                    </form>
+
+                    <DroppableContainer id="work-list" className="task-list">
+                      <SortableContext
+                        items={workTasks.map((task) => task.id)}
+                        strategy={verticalListSortingStrategy}
                       >
-                        Pause <span className="shortcut-hint">[Space]</span>
-                      </button>
-                    )}
-                    <button
-                      className="btn btn-outline"
-                      onClick={resetTimer}
-                      title="Keyboard shortcut: R"
-                    >
-                      Reset <span className="shortcut-hint">[R]</span>
-                    </button>
-                    <button
-                      className="btn btn-accent"
-                      onClick={skipTimer}
-                      title="Keyboard shortcut: S"
-                    >
-                      Skip <span className="shortcut-hint">[S]</span>
-                    </button>
+                        {workTasks.length === 0 && (
+                          <div className="empty-list-message">
+                            No tasks yet. Add one above!
+                          </div>
+                        )}
+                        {workTasks.map((task) => (
+                          <SortableItem
+                            key={task.id}
+                            task={task}
+                            onToggle={toggleWorkTask}
+                            onDelete={deleteWorkTask}
+                            onEdit={editWorkTask}
+                            listType="work"
+                          />
+                        ))}
+                      </SortableContext>
+                    </DroppableContainer>
                   </div>
 
-                  {/* Keyboard shortcuts info */}
-                  <div className="shortcuts-info">
-                    <medium className="shortcuts-label">Shortcuts:</medium>
-                    <li className="shortcut-message">
-                      <small>[Space] Start/Pause</small>
-                    </li>
-                    <li className="shortcut-message">
-                      <small>[R] Reset</small>
-                    </li>
-                    <li className="shortcut-message">
-                      <small>[S] Skip</small>
-                    </li>
-                    <li className="shortcut-message">
-                      <small>[Alt+W] Work Input</small>
-                    </li>
-                    <li className="shortcut-message">
-                      <small>[Alt+B] Break Input</small>
-                    </li>
+                  {/* Break Activities - Show during break time or when timer is inactive */}
+                  <div
+                    className={`todo-column ${
+                      isActive && !isBreak ? "hidden" : ""
+                    }`}
+                  >
+                    <div className="todo-header">
+                      <div className="todo-title">
+                        <h3>🌟 Break Activities</h3>
+                        <button
+                          className="save-template-btn"
+                          onClick={() => saveTemplate("break")}
+                          title="Save as template"
+                        >
+                          Save
+                        </button>
+                      </div>
+                      <small>Recharge with these during breaks</small>
+                    </div>
+                    <form onSubmit={addBreakTask} className="add-task-form">
+                      <input
+                        type="text"
+                        placeholder="Add a break activity..."
+                        value={newBreakTask}
+                        onChange={(e) => setNewBreakTask(e.target.value)}
+                        className="form-input"
+                      />
+                      <button
+                        type="submit"
+                        className="btn btn-secondary btn-sm"
+                      >
+                        Add
+                      </button>
+                    </form>
+
+                    <DroppableContainer id="break-list" className="task-list">
+                      <SortableContext
+                        items={breakTasks.map((task) => task.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        {breakTasks.length === 0 && (
+                          <div className="empty-list-message">
+                            No activities yet. Add one above!
+                          </div>
+                        )}
+                        {breakTasks.map((task) => (
+                          <SortableItem
+                            key={task.id}
+                            task={task}
+                            onToggle={toggleBreakTask}
+                            onDelete={deleteBreakTask}
+                            onEdit={editBreakTask}
+                            listType="break"
+                          />
+                        ))}
+                      </SortableContext>
+                    </DroppableContainer>
                   </div>
                 </div>
               </div>
 
-              {/* Todo Lists Section */}
-              <div className="todo-section">
-                {/* Work Tasks - Show during work time or when timer is inactive */}
-                <div
-                  className={`todo-column ${
-                    isActive && isBreak ? "hidden" : ""
-                  }`}
-                >
-                  <div className="todo-header">
-                    <div className="todo-title">
-                      <h3>🎯 Current Tasks</h3>
-                      <button
-                        className="save-template-btn"
-                        onClick={() => saveTemplate("work")}
-                        title="Save as template"
-                      >
-                        Save
-                      </button>
-                    </div>
-                    <small>Focus on these during work sessions</small>
-                  </div>
-                  <form onSubmit={addWorkTask} className="add-task-form">
-                    <input
-                      ref={workInputRef}
-                      type="text"
-                      placeholder="Add a new task..."
-                      value={newWorkTask}
-                      onChange={(e) => setNewWorkTask(e.target.value)}
-                      className="form-input"
-                    />
-                    <button type="submit" className="btn btn-primary btn-sm">
-                      Add
-                    </button>
-                  </form>
-
-                  <DroppableContainer id="work-list" className="task-list">
-                    <SortableContext
-                      items={workTasks.map((task) => task.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {workTasks.length === 0 && (
-                        <div className="empty-list-message">
-                          No tasks yet. Add one above!
-                        </div>
-                      )}
-                      {workTasks.map((task) => (
-                        <SortableItem
-                          key={task.id}
-                          task={task}
-                          onToggle={toggleWorkTask}
-                          onDelete={deleteWorkTask}
-                          onEdit={editWorkTask}
-                          listType="work"
-                        />
-                      ))}
-                    </SortableContext>
-                  </DroppableContainer>
-                </div>
-
-                {/* Break Activities - Show during break time or when timer is inactive */}
-                <div
-                  className={`todo-column ${
-                    isActive && !isBreak ? "hidden" : ""
-                  }`}
-                >
-                  <div className="todo-header">
-                    <div className="todo-title">
-                      <h3>🌟 Break Activities</h3>
-                      <button
-                        className="save-template-btn"
-                        onClick={() => saveTemplate("break")}
-                        title="Save as template"
-                      >
-                        Save
-                      </button>
-                    </div>
-                    <small>Recharge with these during breaks</small>
-                  </div>
-                  <form onSubmit={addBreakTask} className="add-task-form">
-                    <input
-                      ref={breakInputRef}
-                      type="text"
-                      placeholder="Add a break activity..."
-                      value={newBreakTask}
-                      onChange={(e) => setNewBreakTask(e.target.value)}
-                      className="form-input"
-                    />
-                    <button type="submit" className="btn btn-secondary btn-sm">
-                      Add
-                    </button>
-                  </form>
-
-                  <DroppableContainer id="break-list" className="task-list">
-                    <SortableContext
-                      items={breakTasks.map((task) => task.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {breakTasks.length === 0 && (
-                        <div className="empty-list-message">
-                          No activities yet. Add one above!
-                        </div>
-                      )}
-                      {breakTasks.map((task) => (
-                        <SortableItem
-                          key={task.id}
-                          task={task}
-                          onToggle={toggleBreakTask}
-                          onDelete={deleteBreakTask}
-                          onEdit={editBreakTask}
-                          listType="break"
-                        />
-                      ))}
-                    </SortableContext>
-                  </DroppableContainer>
-                </div>
+              <div className="drag-instructions">
+                <small>
+                  {isActive && !isBreak
+                    ? "🎯 Focus Time: Complete your current tasks!"
+                    : isActive && isBreak
+                      ? "🌟 Break Time: Enjoy your break activities!"
+                      : "💡 Tip: Drag tasks to reorder them or move between lists"}
+                </small>
               </div>
-            </div>
-
-            <div className="drag-instructions">
-              <small>
-                {isActive && !isBreak
-                  ? "🎯 Focus Time: Complete your current tasks!"
-                  : isActive && isBreak
-                  ? "🌟 Break Time: Enjoy your break activities!"
-                  : "💡 Tip: Drag tasks to reorder them or move between lists"}
-              </small>
             </div>
           </div>
         </div>
-      </div>
-    </DndContext>
+      </DndContext>
+
+      <WelcomeModal />
+      <AuthPromptModal
+        show={showAuthPrompt}
+        listType={authPromptListType}
+        onClose={() => setShowAuthPrompt(false)}
+      />
+    </>
   );
 };
 

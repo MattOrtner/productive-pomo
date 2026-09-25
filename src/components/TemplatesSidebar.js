@@ -1,5 +1,5 @@
 import React from "react";
-import "./TemplatesSidebar.css";
+import "./styles/TemplatesSidebar.css";
 
 const TemplatesSidebar = ({
   isOpen,
