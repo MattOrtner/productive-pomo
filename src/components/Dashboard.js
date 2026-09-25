@@ -546,18 +546,52 @@ const Dashboard = () => {
         return;
       }
     }
-
-    const name = prompt(`Enter a name for this ${type} template:`);
+    let name = prompt(`Enter a name for this ${type} template:`);
     if (!name || !name.trim()) return;
+    name = name.trim();
+
+    // Helper function to find an existing template
+    const findExistingTemplate = (templateName) =>
+      templates.find(
+        (t) =>
+          t.type === type &&
+          t.name.toLowerCase() === templateName.toLowerCase(),
+      );
+
+    let existing = findExistingTemplate(name);
+
+    while (existing) {
+      const overwrite = window.confirm(
+        `A ${type} template named "${existing.name}" already exists. Click OK to overwrite it, or Cancel to choose a different name.`,
+      );
+
+      if (overwrite) {
+        const updatedTemplate = {
+          ...existing,
+          tasks: tasks.map((task) => ({ ...task })),
+          createdAt: new Date().toISOString(),
+        };
+        const existingId = existing.id;
+        setTemplates((prev) =>
+          prev.map((t) => (t.id === existingId ? updatedTemplate : t)),
+        );
+        return;
+      }
+
+      name = prompt(`Enter a new name for this ${type} template:`);
+      if (!name || !name.trim()) return;
+      name = name.trim();
+
+      existing = findExistingTemplate(name);
+    }
 
     const template = {
       id: `template-${Date.now()}`,
-      name: name.trim(),
+      name,
       type,
-      tasks: tasks.map((task) => ({ ...task })), // Deep copy
+      tasks: tasks.map((task) => ({ ...task })),
       createdAt: new Date().toISOString(),
     };
-
     setTemplates((prev) => [...prev, template]);
   };
 
