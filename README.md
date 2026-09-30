@@ -8,7 +8,7 @@ Productive Pomodoro is a simple Pomodoro timer app to help structure focused wor
 - Configurable work/break durations
 - Light/Dark theme
 - Drag and Drop lists
-- Keyboard shortcuts for efficient functionality
+- Save your lists so you never lose your place
 
 ## Prerequisites
 
