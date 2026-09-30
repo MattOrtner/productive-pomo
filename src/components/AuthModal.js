@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./AuthModal.css";
+import { useAuth } from "../contexts/AuthContext";
+import "./styles/AuthModal.css";
 
 const AuthModal = ({ onClose }) => {
   const [view, setView] = useState("landing"); // 'landing', 'login', 'register'
@@ -12,6 +13,7 @@ const AuthModal = ({ onClose }) => {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const { login, register } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -35,12 +37,11 @@ const AuthModal = ({ onClose }) => {
     }
 
     try {
-      console.log("Login attempt:", formData);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await login(formData.email, formData.password);
       navigate("/dashboard");
       onClose();
     } catch (err) {
-      setError("Login failed. Please try again.");
+      setError(err.message || "Login failed. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -75,12 +76,11 @@ const AuthModal = ({ onClose }) => {
     }
 
     try {
-      console.log("Register attempt:", formData);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await register(formData.name, formData.email, formData.password);
       navigate("/dashboard");
       onClose();
     } catch (err) {
-      setError("Registration failed. Please try again.");
+      setError(err.message || "Registration failed. Please try again.");
     } finally {
       setIsLoading(false);
     }

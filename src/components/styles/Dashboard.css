@@ -1,8 +1,16 @@
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
 .dashboard {
+  flex: 1;
   min-height: 100vh;
   background: var(--light-gray);
   color: var(--dark-gray);
-  transition: background 0.3s, color 0.3s;
+  transition:
+    background 0.3s,
+    color 0.3s;
 }
 
 .dashboard-header {
@@ -13,7 +21,15 @@
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  transition: background 0.3s, color 0.3s;
+  transition:
+    background 0.3s,
+    color 0.3s;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .task-item[draggable="true"]:hover {
@@ -28,7 +44,10 @@
   box-shadow: 0 8px 24px var(--shadow);
   width: 100%;
   max-width: 320px;
-  transition: background 0.3s, color 0.3s, border-color 0.3s;
+  transition:
+    background 0.3s,
+    color 0.3s,
+    border-color 0.3s;
   height: fit-content;
   overflow: hidden; /* Ensure clean borders and prevent content overflow */
   box-sizing: border-box; /* Include padding and border in width calculation */
@@ -45,7 +64,10 @@
   align-items: center;
   justify-content: space-between;
   box-shadow: 0 2px 8px var(--shadow);
-  transition: background 0.3s, color 0.3s, border-color 0.3s;
+  transition:
+    background 0.3s,
+    color 0.3s,
+    border-color 0.3s;
 }
 
 /* Animation for timer completion */
@@ -108,7 +130,9 @@
   padding: 4px 2px;
   min-height: 80px;
   position: relative;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .task-list.drag-over {
@@ -171,7 +195,10 @@
   box-shadow: 0 8px 24px var(--shadow);
   width: 100%;
   max-width: 320px;
-  transition: background 0.3s, color 0.3s, border-color 0.3s;
+  transition:
+    background 0.3s,
+    color 0.3s,
+    border-color 0.3s;
   height: fit-content;
   overflow: hidden; /* Ensure clean borders and prevent content overflow */
   box-sizing: border-box; /* Include padding and border in width calculation */
@@ -495,10 +522,37 @@
   text-align: center;
 }
 
+.todo-title {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
 .todo-header h3 {
   font-size: 20px;
   font-weight: 600;
   margin-bottom: 4px;
+}
+
+.save-template-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.save-template-btn:hover {
+  background: var(--bg-hover);
+  border-color: var(--primary);
+  color: var(--primary);
+  opacity: 1;
+  transform: translateY(-1px);
 }
 
 .todo-header small {
@@ -524,7 +578,9 @@
   margin-bottom: 4px;
   background: var(--light-gray);
   border-radius: 8px;
-  transition: all 0.3s ease, transform 0.2s ease;
+  transition:
+    all 0.3s ease,
+    transform 0.2s ease;
   min-width: 0; /* Allows flex container to shrink */
   width: 100%; /* Ensures full width usage */
 }
@@ -629,6 +685,10 @@
   background: var(--white);
   outline: none;
   margin-right: 8px;
+}
+
+[data-theme="dark"] .task-edit-input {
+  color: white;
 }
 
 .task-edit-input:focus {
@@ -817,6 +877,16 @@
   font-size: 12px;
   opacity: 0.8;
   z-index: 1000;
+}
+
+.shortcuts-label {
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.shortcut-message {
+  list-style: none;
+  margin: 4px 0;
 }
 
 /* Animation for timer completion */
