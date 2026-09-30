@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./styles/TemplatesSidebar.css";
 
 // White fill with black stroke keeps the icon visible in both light and dark themes
@@ -20,6 +20,25 @@ const PlusIcon = () => (
   </svg>
 );
 
+const ChevronIcon = ({ expanded }) => (
+  <svg
+    className={`preview-chevron${expanded ? " expanded" : ""}`}
+    width="10"
+    height="10"
+    viewBox="0 0 24 24"
+    aria-hidden="true"
+  >
+    <polyline
+      points="4,8 12,16 20,8"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
 const TemplatesSidebar = ({
   isOpen,
   onToggle,
@@ -30,6 +49,32 @@ const TemplatesSidebar = ({
 }) => {
   const workTemplates = templates.filter((t) => t.type === "work");
   const breakTemplates = templates.filter((t) => t.type === "break");
+  const [expandedIds, setExpandedIds] = useState(new Set());
+  const [collapsedSections, setCollapsedSections] = useState(new Set());
+
+  const toggleSection = (section) => {
+    setCollapsedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(section)) {
+        next.delete(section);
+      } else {
+        next.add(section);
+      }
+      return next;
+    });
+  };
+
+  const toggleExpanded = (id) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   const formatPreview = (tasks) => {
     if (tasks.length === 0) return "Empty list";
@@ -66,8 +111,15 @@ const TemplatesSidebar = ({
         <div className="sidebar-content">
           {/* Work Templates */}
           <div className="template-section">
-            <h4>Work Templates</h4>
-            {workTemplates.length === 0 ? (
+            <h4
+              className="section-title clickable"
+              onClick={() => toggleSection("work")}
+            >
+              Work Templates
+              <ChevronIcon expanded={!collapsedSections.has("work")} />
+            </h4>
+            {collapsedSections.has("work") ? null : workTemplates.length ===
+              0 ? (
               <p className="empty-section">No saved work lists yet</p>
             ) : (
               <div className="template-list">
@@ -99,9 +151,35 @@ const TemplatesSidebar = ({
                         </button>
                       </div>
                     </div>
-                    <p className="template-preview">
-                      {formatPreview(template.tasks)}
-                    </p>
+                    {template.tasks.length > 2 ? (
+                      <>
+                        <p
+                          className="template-preview clickable"
+                          onClick={() => toggleExpanded(template.id)}
+                        >
+                          {expandedIds.has(template.id)
+                            ? "Show less"
+                            : formatPreview(template.tasks)}{" "}
+                          <ChevronIcon
+                            expanded={expandedIds.has(template.id)}
+                          />
+                        </p>
+                        {expandedIds.has(template.id) && (
+                          <ul
+                            className="template-preview-full"
+                            onClick={() => toggleExpanded(template.id)}
+                          >
+                            {template.tasks.map((task) => (
+                              <li key={task.id}>{task.text}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </>
+                    ) : (
+                      <p className="template-preview">
+                        {formatPreview(template.tasks)}
+                      </p>
+                    )}
                     <small className="task-count">
                       {template.tasks.length} task
                       {template.tasks.length !== 1 ? "s" : ""}
@@ -116,8 +194,15 @@ const TemplatesSidebar = ({
 
           {/* Break Templates */}
           <div className="template-section">
-            <h4>Break Templates</h4>
-            {breakTemplates.length === 0 ? (
+            <h4
+              className="section-title clickable"
+              onClick={() => toggleSection("break")}
+            >
+              Break Templates
+              <ChevronIcon expanded={!collapsedSections.has("break")} />
+            </h4>
+            {collapsedSections.has("break") ? null : breakTemplates.length ===
+              0 ? (
               <p className="empty-section">No saved break lists yet</p>
             ) : (
               <div className="template-list">
@@ -149,9 +234,35 @@ const TemplatesSidebar = ({
                         </button>
                       </div>
                     </div>
-                    <p className="template-preview">
-                      {formatPreview(template.tasks)}
-                    </p>
+                    {template.tasks.length > 2 ? (
+                      <>
+                        <p
+                          className="template-preview clickable"
+                          onClick={() => toggleExpanded(template.id)}
+                        >
+                          {expandedIds.has(template.id)
+                            ? "Show less"
+                            : formatPreview(template.tasks)}{" "}
+                          <ChevronIcon
+                            expanded={expandedIds.has(template.id)}
+                          />
+                        </p>
+                        {expandedIds.has(template.id) && (
+                          <ul
+                            className="template-preview-full"
+                            onClick={() => toggleExpanded(template.id)}
+                          >
+                            {template.tasks.map((task) => (
+                              <li key={task.id}>{task.text}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </>
+                    ) : (
+                      <p className="template-preview">
+                        {formatPreview(template.tasks)}
+                      </p>
+                    )}
                     <small className="task-count">
                       {template.tasks.length} task
                       {template.tasks.length !== 1 ? "s" : ""}

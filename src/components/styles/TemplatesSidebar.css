@@ -100,6 +100,18 @@
   font-weight: 600;
 }
 
+.section-title.clickable {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.section-title.clickable:hover {
+  color: var(--primary);
+}
+
 .empty-section {
   color: var(--text-secondary);
   font-style: italic;
@@ -119,6 +131,7 @@
 
 /* Template Cards */
 .template-card {
+  position: relative;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -191,6 +204,40 @@
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+
+.template-preview.clickable {
+  cursor: pointer;
+}
+
+.template-preview.clickable:hover {
+  color: var(--primary);
+}
+
+.preview-chevron {
+  display: inline-block;
+  vertical-align: middle;
+  color: currentColor;
+  transition: transform 0.2s ease;
+}
+
+.preview-chevron.expanded {
+  transform: rotate(180deg);
+}
+
+/* Full task list, shown when the preview is clicked */
+.template-preview-full {
+  margin: 0 0 4px 0;
+  padding: 0 0 0 16px;
+  list-style: disc;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.template-preview-full li {
+  overflow-wrap: anywhere;
 }
 
 .task-count {
