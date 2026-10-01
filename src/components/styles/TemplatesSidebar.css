@@ -247,9 +247,8 @@
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-  .templates-sidebar {
+  .templates-sidebar.open {
     width: 280px;
-    left: -280px;
   }
 
   .sidebar-toggle.active {
@@ -266,9 +265,8 @@
 }
 
 @media (max-width: 480px) {
-  .templates-sidebar {
+  .templates-sidebar.open {
     width: 100vw;
-    left: -100vw;
   }
 
   .sidebar-toggle.active {

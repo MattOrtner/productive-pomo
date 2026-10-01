@@ -5,6 +5,7 @@
 
 .dashboard {
   flex: 1;
+  min-width: 0;
   min-height: 100vh;
   background: var(--light-gray);
   color: var(--dark-gray);
@@ -175,6 +176,7 @@
 }
 
 .dashboard-content {
+  container-type: inline-size;
   padding: 40px 20px;
   max-width: 1200px;
   margin: 0 auto;
@@ -862,6 +864,22 @@
 
   .todo-column {
     padding: 16px;
+  }
+}
+
+@container (max-width: 900px) {
+  .main-layout,
+  .main-layout.focus-mode {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .main-layout .timer-section {
+    grid-column: 1;
+  }
+
+  .main-layout.focus-mode .todo-column:not(.hidden) {
+    grid-column: 1;
+    grid-row: auto;
   }
 }
 
